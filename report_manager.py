@@ -1,5 +1,6 @@
 import os
 import wave
+import pygame.mixer
 from configparser import ConfigParser
 
 
@@ -88,37 +89,49 @@ class ReportManager:
 
         return exist
 
+    def merge_wavs(self, sound_sequence, file_name):
+        # poskladam zvuky podle potrebne posloupnosti
+        data = []
+
+        for sound in sound_sequence:
+            w = wave.open(sound, 'rb')
+            data.append([w.getparams(), w.readframes(w.getnframes())])
+            w.close()
+
+        output = wave.open(file_name, 'wb')
+        output.setparams(data[0][0])
+
+        # postpojuji vysledne zvuky
+        for sound in range(len(data)):
+            output.writeframes(data[sound][1])
+
+        output.close()
+
+    def play_report(self, sound_sequence):
+
+        clock = pygame.time.Clock()
+        while len(sound_sequence) > 0:
+            pygame.mixer.init()
+            pygame.mixer.music.load(sound_sequence.pop(0))
+            pygame.mixer.music.play()
+
+            while pygame.mixer.music.get_busy():
+                clock.tick(1000)
+
     def create_report(self,
                       sound_sequence):
 
-        redefined_sound_sequence = []
         redefined_sound_sequence = self.define_sound_sequence(sound_sequence)
-
-        # print("velikost seznamu: ", len(redefined_sound_sequence))
 
         if len(redefined_sound_sequence) > 0:
             # nejdrive otestuji, zda upraveny seznam obsahuje nejake polozky
             if self.all_files_exist(redefined_sound_sequence):
                 self.increment_report_id()
                 file_name = self.get_report_id()
-                outfile = str(file_name) + ".wav"
+                outfile = str(file_name) + ".ogg"
+                # self.merge_wavs(redefined_sound_sequence, outfile)
+                self.play_report(redefined_sound_sequence)
 
-                # poskladam zvuky podle potrebne posloupnosti
-                data = []
-
-                for sound in redefined_sound_sequence:
-                    w = wave.open(sound, 'rb')
-                    data.append([w.getparams(), w.readframes(w.getnframes())])
-                    w.close()
-
-                output = wave.open(outfile, 'wb')
-                output.setparams(data[0][0])
-
-                # postpojuji vysledne zvuky
-                for sound in range(len(data)):
-                    output.writeframes(data[sound][1])
-
-                output.close()
             else:
                 print('Nastala chyba se ctenim souboru...')
         else:
