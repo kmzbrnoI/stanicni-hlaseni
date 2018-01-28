@@ -107,7 +107,17 @@ class ReportManager:
 
         output.close()
 
-    def play_report(self, sound_sequence):
+    def play_report_ram(self, sound_sequence):
+        pygame.mixer.init()
+        clock = pygame.time.Clock()
+        sounds = [pygame.mixer.Sound(f) for f in sound_sequence]
+        for s in sounds:
+            s.play()
+            channel = s.play()
+            while channel.get_busy():
+                clock.tick(10)
+
+    def play_report_stream(self, sound_sequence):
 
         clock = pygame.time.Clock()
         while len(sound_sequence) > 0:
@@ -125,12 +135,12 @@ class ReportManager:
 
         if len(redefined_sound_sequence) > 0:
             # nejdrive otestuji, zda upraveny seznam obsahuje nejake polozky
-            if self.all_files_exist(redefined_sound_sequence):
+            if True:  # self.all_files_exist(redefined_sound_sequence):
                 self.increment_report_id()
                 file_name = self.get_report_id()
                 outfile = str(file_name) + ".ogg"
                 # self.merge_wavs(redefined_sound_sequence, outfile)
-                self.play_report(redefined_sound_sequence)
+                self.play_report_ram(redefined_sound_sequence)
 
             else:
                 print('Nastala chyba se ctenim souboru...')
