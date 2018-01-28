@@ -1,10 +1,7 @@
 #!/usr/bin/python3
 
-import asyncio
 import socket
-import threading
 import time
-
 import report_manager
 
 
@@ -12,12 +9,40 @@ class NetworkServicesClient():
     def __init__(self):
         self.connection_attempts = 0
         self.communication_accomplished = False
+        self.broadcast_port = 0
 
     def get_connection_attempts(self):
         return self.connection_attempts
 
     def add_connection_attempts(self):
         self.connection_attempts += 1
+
+    def udp_broadcast(self, port, data):
+        broadcast_count = 0
+        brd_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        brd_socket.bind(('', 0))
+        brd_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+        brd_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+
+        while True:
+            data_to_send = data.encode()  # nahradit podle parametru pro HJOP
+            self.broadcast_port = port
+            brd_socket.sendto(data_to_send, ('<broadcast>', port))
+            time.sleep(1)
+            broadcast_count += 1
+            if broadcast_count > 2:
+                brd_socket.close()
+                break
+
+    def udp_listener(self, port):
+        print("Nasloucham...")
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        # port = self.broadcast_port
+        s.bind(('', port))
+        while (1):
+            message = s.recvfrom(4096)
+            print(message)
+            return message
 
     def tcp_listener(self, port):
         try:
