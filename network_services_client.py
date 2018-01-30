@@ -3,6 +3,7 @@
 import socket
 import time
 import report_manager
+import system_functions
 
 
 class NetworkServicesClient():
@@ -10,6 +11,7 @@ class NetworkServicesClient():
         self.connection_attempts = 0
         self.communication_accomplished = False
         self.broadcast_port = 0
+        self.rm = report_manager.ReportManager()
 
     def get_connection_attempts(self):
         return self.connection_attempts
@@ -47,6 +49,8 @@ class NetworkServicesClient():
     def tcp_listener(self, port):
         try:
             clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            # host = '10.0.0.36' #pokud bych byl v realnem provozu
+
             host = socket.gethostname()
             while (self.communication_accomplished == False) and (self.get_connection_attempts() < 5):
                 self.add_connection_attempts()
@@ -60,7 +64,7 @@ class NetworkServicesClient():
                     time.sleep(5)
                     if self.get_connection_attempts() >= 5:
                         print("Ukoncuji spojeni")
-                        break;
+                        break
                     self.tcp_listener(port)
 
             if (self.communication_accomplished):
@@ -72,8 +76,12 @@ class NetworkServicesClient():
                         decoded_message = message.decode('UTF-8')
                         if decoded_message == "ukoncit":
                             break
+                        if decoded_message == "zvuky":
+                            system_functions.download_sound_files_samba("10.0.0.32", "share", self.rm.sound_set)
+                            continue
                         report_list = decoded_message.split(" ")
-                        report_manager.create_report(report_list, 1)
+                        print(report_list)
+                        self.rm.create_report(report_list)
                         print(message.decode('UTF-8'))
                     except socket.error:
                         print("Nastala chyba pri prijmu dat...")

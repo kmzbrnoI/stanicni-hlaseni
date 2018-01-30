@@ -135,10 +135,10 @@ class ReportManager:
 
         if len(redefined_sound_sequence) > 0:
             # nejdrive otestuji, zda upraveny seznam obsahuje nejake polozky
-            if True:  # self.all_files_exist(redefined_sound_sequence):
+            if self.all_files_exist(redefined_sound_sequence):
                 self.increment_report_id()
                 file_name = self.get_report_id()
-                outfile = str(file_name) + ".ogg"
+                # outfile = str(file_name) + ".ogg"
                 # self.merge_wavs(redefined_sound_sequence, outfile)
                 self.play_report_ram(redefined_sound_sequence)
 
