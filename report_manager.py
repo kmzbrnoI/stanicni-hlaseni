@@ -1,7 +1,8 @@
 import os
 import wave
-import pygame.mixer
 from configparser import ConfigParser
+
+import pygame.mixer
 
 
 class ReportManager:
@@ -146,3 +147,66 @@ class ReportManager:
                 print('Nastala chyba se ctenim souboru...')
         else:
             print("Seznam pro hlaseni neobsahuje zadne polozky!")
+
+    def find_audio_number(self, number):
+        sound_set = []
+        for position, character in enumerate(reversed(number)):  # jdu od jednotek, abych synchronizoval pozici a číslo
+
+            # pouze pro pro hodnoty 10, 11, 12...
+            if ((position == 1) and (character == "1")):
+
+                first_char = sound_set[0]
+                sound_set[0] = '1' + first_char
+
+            else:
+                data = character + ('0' * position)  # vytisknu číslo + počet nul
+                if int(data) != 0:  # přetypuji na integer pokud znak není nula, připojím do seznamu
+                    sound_set.append(data)
+
+        output_list = []
+
+        for sound in reversed(sound_set):  # nakonec ještě nahrávky vytisknu v opačném pořadí pro správné seřazení
+            output_list.append(sound)
+
+        return output_list
+
+    def assign_number_directory(self, input_list):
+        output_list = ["numbers/numbers/" + x + ".ogg" for x in input_list[:-1]]
+        last_item = "numbers/numbers_/" + input_list[-1] + ".ogg"
+        output_list.append(last_item)
+
+        return output_list
+
+    def parse_train_number(self, train_number):
+
+        train_number_len = len(train_number)
+
+        if train_number_len % 2 == 0:  # zjistím, jestli je delka čísla vlaku sudá
+            first_part, second_part = train_number[:len(train_number) // 2], train_number[len(train_number) // 2:]
+
+            tmp_list = self.find_audio_number(first_part)
+            first_list = self.assign_number_directory(tmp_list)
+
+            tmp_list = self.find_audio_number(second_part)
+            second_list = self.assign_number_directory(tmp_list)
+
+            first_list += second_list
+            return first_list
+
+        if train_number_len < 4:
+            tmp_list = self.find_audio_number(train_number)
+            output_list = self.assign_number_directory(tmp_list)
+
+            return (output_list)
+
+        if train_number_len == 5:
+            first_part, second_part = train_number[:2], train_number[2:]
+
+            tmp_list = self.find_audio_number(first_part)
+            first_list = self.assign_number_directory(tmp_list)
+
+            tmp_list = self.find_audio_number(second_part)
+            second_list = self.assign_number_directory(tmp_list)
+
+            first_list += second_list
+            return first_list
