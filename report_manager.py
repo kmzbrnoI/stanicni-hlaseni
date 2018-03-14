@@ -150,23 +150,23 @@ class ReportManager:
 
     def find_audio_number(self, number):
         sound_set = []
+
         for position, character in enumerate(reversed(number)):  # jdu od jednotek, abych synchronizoval pozici a číslo
 
             # pouze pro pro hodnoty 10, 11, 12...
             if ((position == 1) and (character == "1")):
-
                 first_char = sound_set[0]
                 sound_set[0] = '1' + first_char
 
             else:
                 data = character + ('0' * position)  # vytisknu číslo + počet nul
-                if int(data) != 0:  # přetypuji na integer pokud znak není nula, připojím do seznamu
-                    sound_set.append(data)
-
+                sound_set.append(data)
+                
         output_list = []
 
         for sound in reversed(sound_set):  # nakonec ještě nahrávky vytisknu v opačném pořadí pro správné seřazení
-            output_list.append(sound)
+            if int(sound) != 0: # přetypuji na integer pokud znak není nula, připojím do seznamu
+                output_list.append(sound)
 
         return output_list
 
@@ -180,6 +180,7 @@ class ReportManager:
     def parse_train_number(self, train_number):
 
         train_number_len = len(train_number)
+        print("Train number: ", train_number)
 
         if train_number_len % 2 == 0:  # zjistím, jestli je delka čísla vlaku sudá
             first_part, second_part = train_number[:len(train_number) // 2], train_number[len(train_number) // 2:]
@@ -209,4 +210,5 @@ class ReportManager:
             second_list = self.assign_number_directory(tmp_list)
 
             first_list += second_list
+            
             return first_list

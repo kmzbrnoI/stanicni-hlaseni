@@ -13,6 +13,7 @@ class NetworkServicesClient():
         self.communication_accomplished = False
         self.broadcast_port = 0
         self.rm = report_manager.ReportManager()
+        self.device_info = system_functions.DeviceInfo()
         self.server_ip = ""
         self.server_port = ""
         self.word_list = {'PRIJEDE': 'parts/prijede.ogg', 'ODJEDE': 'parts/odjede.ogg',
@@ -45,7 +46,7 @@ class NetworkServicesClient():
         # Metoda slouží pro odeslání informací o zařízení (RPI) na server a získání odpovědi skrze broadcast od serveru.
         # print("Spustim UDP listener...")
         i = 1
-        while i <= 3:
+        while i <= 3: #prepsat na for
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
@@ -61,13 +62,13 @@ class NetworkServicesClient():
 
             try:
                 message = s.recvfrom(4096)
-                #print("Zprava: ", message)
+                print("Zprava: ", message)
 
                 if message:
-                    server_name = "server H0"  # jméno serveru se bude číst z configu
-                    shorted_message = message[0]
-                    if str(server_name) in str(shorted_message):
-                        devices.append(message)
+                    self.device_info.server_name = "server H0"  # jméno serveru se bude číst z configu
+                    shorted_message = message
+                    if str(self.device_info.server_name) in str(shorted_message): #proc str()?
+                        devices.append(message) #staci rozdelit zpravu, kdyz najdu spravny nazev, tak se pripojím na ten spravny
                         # print("pripojeno ", message)
 
                 if devices:
@@ -91,7 +92,7 @@ class NetworkServicesClient():
             host = self.server_ip
             #host = socket.gethostname()
 
-            while (self.communication_accomplished == False) and (self.get_connection_attempts() < 5):
+            while (not self.communication_accomplished) and (self.get_connection_attempts() < 5):
                 self.add_connection_attempts()
 
                 try:
@@ -111,11 +112,11 @@ class NetworkServicesClient():
                 # print("odeslano hello..")
                 print("Zarizeni je pripraveno k prijmu dat...")
                 message = clientsocket.recv(1024)
-                print(message.decode('UTF-8'), end="")
-                clientsocket.send("Ku;SH;REGISTER\n".encode('UTF-8'))  # musím na server odeslat registrační zprávu
-                while True:
+                print(message.decode('UTF-8'), end="") #zkontrolovat verzi
+                clientsocket.send("Ku;SH;REGISTER\n".encode('UTF-8'))  # musím na server odeslat registrační zprávu -- Ku;SH do device_config
+                while True: #funkce listen()
                     try:
-                        message = clientsocket.recv(1024)
+                        message = clientsocket.recv(1024) #velikost zpravy, dokud neni konec radku
 
                         decoded_message = message.decode('UTF-8')
                         #print(decoded_message)

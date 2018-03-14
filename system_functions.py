@@ -22,17 +22,29 @@ def get_device_ip():
     return str(subprocess.check_output("hostname -I", shell=True))
 
 
-def read_device_config():
-    # funkce pro načtení konfiguračního souboru
-    parser = ConfigParser()
-    parser.read('device_config.ini')
-
-    sound_set = parser.sections()[0]
-    ssid = (parser[sound_set]['ssid'])
-    password = (parser[sound_set]['password'])
-
-    print("SSID: {0}\nPassword: {1}".format(ssid, password))
-
-
 def setup_wifi():
     subprocess.call(["./wifi.sh"])
+    
+    
+class DeviceInfo:
+
+    def __init__(self):
+      self.ssid = ''
+      self.password = ''
+      self.server_name = ''
+      self.read_device_config()
+
+
+    def read_device_config(self):
+        # funkce pro načtení konfiguračního souboru
+        parser = ConfigParser()
+        parser.read('device_config.ini')
+
+        wifi = parser.sections()[0]
+        self.ssid = (parser[wifi]['ssid'])
+        self.password = (parser[wifi]['password'])
+        server = parser.sections()[1]
+        self.server_name = (parser[server]['name'])
+
+        #print("SSID: {0}\nPassword: {1}".format(self.ssid, self.password))
+
