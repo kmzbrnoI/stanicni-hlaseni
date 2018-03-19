@@ -45,8 +45,8 @@ class NetworkServicesClient():
     def udp_broadcast_listener(self, port):
         # Metoda slouží pro odeslání informací o zařízení (RPI) na server a získání odpovědi skrze broadcast od serveru.
         # print("Spustim UDP listener...")
-        i = 1
-        while i <= 3: #prepsat na for
+        
+        for i in range(1, 4): 
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
@@ -62,28 +62,26 @@ class NetworkServicesClient():
 
             try:
                 message = s.recvfrom(4096)
-                print("Zprava: ", message)
+                #print("Zprava: ", message)
 
                 if message:
-                    self.device_info.server_name = "server H0"  # jméno serveru se bude číst z configu
-                    shorted_message = message
-                    if str(self.device_info.server_name) in str(shorted_message): #proc str()?
-                        devices.append(message) #staci rozdelit zpravu, kdyz najdu spravny nazev, tak se pripojím na ten spravny
-                        # print("pripojeno ", message)
 
-                if devices:
-                    # print("Nalezeno spravne zarizeni!")
-                    device = devices[0]
+                    device_info, ip = message
 
-                    server = device[1]
-                    self.server_ip = server[0]
-                    self.server_port = server[1]
+                    if self.device_info.server_name in str(device_info): 
+                        device = device_info
+                       
+                if device:
+                   
+                    server = str(device).split(";")
+                    self.server_ip = server[4]
+                    self.server_port = server[5]
+
                     return True
 
 
             except socket.timeout:
                 print("UDP timeout...")
-                i += 1
                 continue
 
     def tcp_listener(self, port):
