@@ -110,14 +110,18 @@ class NetworkServicesClient():
                 # print("odeslano hello..")
                 print("Zarizeni je pripraveno k prijmu dat...")
                 message = clientsocket.recv(1024)
-                print(message.decode('UTF-8'), end="") #zkontrolovat verzi
+                print(message.decode('UTF-8')) #, end="") #zkontrolovat verzi
                 clientsocket.send("Ku;SH;REGISTER\n".encode('UTF-8'))  # musím na server odeslat registrační zprávu -- Ku;SH do device_config
                 while True: #funkce listen()
                     try:
-                        message = clientsocket.recv(1024) #velikost zpravy, dokud neni konec radku
 
+                        message = clientsocket.recv(1024)
+
+                        while not message.decode('UTF-8').endswith('\n'):
+                            message += clientsocket.recv(1024)
+                            
                         decoded_message = message.decode('UTF-8')
-                        #print(decoded_message)
+
                         if decoded_message == "ukoncit":
                             break
                         if decoded_message == "zvuky":
