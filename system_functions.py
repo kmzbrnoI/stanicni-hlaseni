@@ -32,19 +32,22 @@ class DeviceInfo:
       self.ssid = ''
       self.password = ''
       self.server_name = ''
+      self.area = ''
       self.read_device_config()
 
 
     def read_device_config(self):
         # funkce pro načtení konfiguračního souboru
         parser = ConfigParser()
-        parser.read('device_config.ini')
+        parser.read('global_config.ini')
 
         wifi = parser.sections()[0]
         self.ssid = (parser[wifi]['ssid'])
         self.password = (parser[wifi]['password'])
         server = parser.sections()[1]
         self.server_name = (parser[server]['name'])
+        area = parser.sections()[2]
+        self.area = (parser[area]['name'])
 
         #print("SSID: {0}\nPassword: {1}".format(self.ssid, self.password))
 

@@ -111,7 +111,8 @@ class NetworkServicesClient():
                 print("Zarizeni je pripraveno k prijmu dat...")
                 message = clientsocket.recv(1024)
                 print(message.decode('UTF-8')) #, end="") #zkontrolovat verzi
-                clientsocket.send("Ku;SH;REGISTER\n".encode('UTF-8'))  # musím na server odeslat registrační zprávu -- Ku;SH do device_config
+                register_message = self.device_info.area + ";SH;REGISTER\n";
+                clientsocket.send(register_message.encode('UTF-8'))  # musím na server odeslat registrační zprávu
                 while True: #funkce listen()
                     try:
 
