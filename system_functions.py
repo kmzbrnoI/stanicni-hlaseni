@@ -2,6 +2,7 @@
 
 import os
 import subprocess
+import socket
 from configparser import ConfigParser
 
 
@@ -19,8 +20,8 @@ def download_sound_files_samba(server_ip, home_folder, sound_set):
 
 
 def get_device_ip():
-    return str(subprocess.check_output("hostname -I", shell=True))
 
+    return socket.gethostbyname(socket.gethostname())
 
 def setup_wifi():
     subprocess.call(["./wifi.sh"])
@@ -48,6 +49,4 @@ class DeviceInfo:
         self.server_name = (parser[server]['name'])
         area = parser.sections()[2]
         self.area = (parser[area]['name'])
-
-        #print("SSID: {0}\nPassword: {1}".format(self.ssid, self.password))
 

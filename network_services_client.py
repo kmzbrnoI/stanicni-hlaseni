@@ -26,69 +26,11 @@ class NetworkServicesClient():
     def add_connection_attempts(self):
         self.connection_attempts += 1
 
-    def udp_broadcast(self, port, data):
-
-        broadcast_count = 0
-        brd_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        brd_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-        brd_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-
-        while True:
-            # TODO: Nastavit podminku pro cyklus
-            data_to_send = data.encode()
-            self.broadcast_port = port
-            brd_socket.sendto(data_to_send, ('<broadcast>', port))
-            brd_socket.sendto(data_to_send, ('<broadcast>', 5889))  # pouze pro emulaci serveru
-
-            break
-
-    def udp_broadcast_listener(self, port):
-        # Metoda slouží pro odeslání informací o zařízení (RPI) na server a získání odpovědi skrze broadcast od serveru.
-        # print("Spustim UDP listener...")
-        
-        for i in range(1, 4): 
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-
-            self.udp_broadcast(port, "hJOP;1.0;panel;;" + system_functions.get_device_ip() + ";;;\n")
-
-            s.bind(('', port))
-            s.settimeout(20)
-
-            devices = []
-            message = ""
-
-            print("Pocet pokusu pro UDP: ", i)
-
-            try:
-                message = s.recvfrom(4096)
-                #print("Zprava: ", message)
-
-                if message:
-
-                    device_info, ip = message
-
-                    if self.device_info.server_name in str(device_info): 
-                        device = device_info
-                       
-                if device:
-                   
-                    server = str(device).split(";")
-                    self.server_ip = server[4]
-                    self.server_port = server[5]
-
-                    return True
-
-
-            except socket.timeout:
-                print("UDP timeout...")
-                continue
-
     def tcp_listener(self, port):
         try:
             clientsocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            host = self.server_ip
-            #host = socket.gethostname()
+            # host = self.server_ip
+            host = socket.gethostname()
 
             while (not self.communication_accomplished) and (self.get_connection_attempts() < 5):
                 self.add_connection_attempts()
@@ -110,17 +52,17 @@ class NetworkServicesClient():
                 # print("odeslano hello..")
                 print("Zarizeni je pripraveno k prijmu dat...")
                 message = clientsocket.recv(1024)
-                print(message.decode('UTF-8')) #, end="") #zkontrolovat verzi
+                print(message.decode('UTF-8'))  # zkontrolovat verzi
                 register_message = self.device_info.area + ";SH;REGISTER\n";
                 clientsocket.send(register_message.encode('UTF-8'))  # musím na server odeslat registrační zprávu
-                while True: #funkce listen()
+                while True:  # funkce listen()
                     try:
 
                         message = clientsocket.recv(1024)
 
                         while not message.decode('UTF-8').endswith('\n'):
                             message += clientsocket.recv(1024)
-                            
+
                         decoded_message = message.decode('UTF-8')
 
                         if decoded_message == "ukoncit":
