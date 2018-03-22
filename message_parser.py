@@ -1,0 +1,31 @@
+def parse(data, separator):
+    output = []
+    item = ''
+    escaped_level = 0
+
+    for i in range(0, len(data)):
+        active = data[i]
+
+        if active == '{':
+
+            if escaped_level > 0:
+                item += active
+            escaped_level += 1
+
+        elif (active == '}') and (escaped_level > 0):
+            escaped_level -= 1
+            if (escaped_level > 0):
+                item += active
+        else:
+
+            if (active == separator) and (escaped_level == 0):
+
+                output.append(item)
+                item = ''
+
+            else:
+
+                if (active != separator) or (escaped_level > 0):
+                    item += active
+
+    output.append(item)
