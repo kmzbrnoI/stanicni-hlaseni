@@ -4,9 +4,7 @@ import system_functions
 
 
 class ServerNotFoundError(Exception):
-    def __init__(self, message):
-        self.message = message
-
+    pass
 
 class UDPTimeoutError(socket.timeout):
     pass
@@ -28,7 +26,7 @@ def get_ip(name):
     # Metoda slouží pro odeslání informací o zařízení (RPI) na server a získání odpovědi skrze broadcast od serveru.
     # print("Spustim UDP listener...")
 
-    for i in range(1, 4):
+    for _ in range(3):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
@@ -40,7 +38,7 @@ def get_ip(name):
         message = ""
         device = ""
 
-        print("Pocet pokusu pro UDP: ", i)
+        print("Pocet pokusu pro UDP: ", _ + 1)
 
         try:
             message = s.recvfrom(4096)
