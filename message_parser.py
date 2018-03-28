@@ -1,9 +1,11 @@
-def parse(data, separator):
+def parse(data, separators):
     output = []
     item = ''
     escaped_level = 0
 
-    for i in range(0, len(data)):
+    separators = [';', '[', ']']
+
+    for i in range(len(data)):
         active = data[i]
 
         if active == '{':
@@ -18,14 +20,17 @@ def parse(data, separator):
                 item += active
         else:
 
-            if (active == separator) and (escaped_level == 0):
+            if (active in separators) and (escaped_level == 0):
 
                 output.append(item)
                 item = ''
 
             else:
 
-                if (active != separator) or (escaped_level > 0):
+                if (active not in separators) or (escaped_level > 0):
                     item += active
 
-    output.append(item)
+    if (item != ""):
+        output.append(item)
+
+    return output
