@@ -1,5 +1,6 @@
 import message_parser
 import report_manager
+import time
 
 
 class UnknownMessageError(Exception):
@@ -7,11 +8,18 @@ class UnknownMessageError(Exception):
 
 
 def process_message(message):
+    print("Zpracovavam: ", message)
+    
     message = parse_message(message)
 
-    message_type = message[2].lower()
+    last_item = message.pop()
 
-    # print("Type:", message_type)
+    last_item = last_item.replace("\n", "")
+    last_item = last_item.replace("\r", "")
+
+    message.append(last_item)
+    
+    message_type = message[2].lower()
 
     if message_type == "prijede":
         prijede(message)
@@ -30,13 +38,24 @@ def process_message(message):
 
 
 def prijede(message):
+    #číslo;typ;kolej;výchozí stanice;cílová stanice;/čas příjezdu/;/čas odjezdu/
+    #608522;Os;1;Zd;Oc;9:22;9:25
+    
+    #Ku', 'SH', 'ODJEDE', '504220', 'Os', '1', 'Bs', 'Ku'
     rm = report_manager.ReportManager()
 
     report_list = []
 
     train_number = message[3]
-    train_type = "trainType/" + message[4] + ".ogg"
+    train_type = "trainType/" + message[4] + "_cislo.ogg"
+
+    railway = "numbers/railway_end/" + message[5] + ".ogg"
+
     action = message[2].lower() + ".ogg"
+
+    from_station = "stations/" + message[6] + ".ogg"
+
+    to_station = "stations/" + message[7] + ".ogg" 
 
     report_list.append("salutation/vazeni_cestujici.ogg")
     report_list.append("salutation/prosim_pozor.ogg")
@@ -44,13 +63,61 @@ def prijede(message):
     report_list.append(train_type)
 
     report_list += rm.parse_train_number(train_number)
+        
+    report_list.append("parts/ze_smeru.ogg")
 
-    report_list.append(action)
+    report_list.append(from_station)
+    
+    report_list.append("parts/vlak_dale_pokracuje_ve_smeru.ogg")   
+    
+    report_list.append(to_station)
+    report_list.append("parts/prijede.ogg")
+
+    report_list.append("parts/na_kolej.ogg")
+    
+    report_list.append(railway)
+
+    rm.create_report(report_list)
 
 
 def odjede(message):
-    print()
+    #Ku', 'SH', 'ODJEDE', '504220', 'Os', '1', 'Bs', 'Ku'
+    rm = report_manager.ReportManager()
 
+    report_list = []
+
+    train_number = message[3]
+    train_type = "trainType/" + message[4] + "_cislo.ogg"
+
+    railway = "numbers/railway_end/" + message[5] + ".ogg"
+
+    action = message[2].lower() + ".ogg"
+
+    from_station = "stations/" + message[6] + ".ogg"
+
+    to_station = "stations/" + message[7] + ".ogg" 
+
+    report_list.append("salutation/vazeni_cestujici.ogg")
+    report_list.append("salutation/prosim_pozor.ogg")
+
+    report_list.append(train_type)
+
+    report_list += rm.parse_train_number(train_number)
+        
+    report_list.append("parts/ze_smeru.ogg")
+
+    report_list.append(from_station)
+    
+    report_list.append("parts/vlak_dale_pokracuje_ve_smeru.ogg")   
+    
+    report_list.append(to_station)
+    report_list.append("parts/odjede.ogg")
+
+    report_list.append("parts/z_koleje.ogg")
+    
+    report_list.append(railway)
+
+    rm.create_report(report_list)
 
 def projede(message):
     print()
@@ -99,4 +166,3 @@ def parse_message(message):
                 return message[:-1] + item
 
 
-#process_message(["Zd;SH;PRIJEDE;{504351;Os;7b;Zd;Klb}"])
