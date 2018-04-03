@@ -109,7 +109,11 @@ class ReportManager:
         output.close()
 
     def play_report_ram(self, sound_sequence):
+        
+        pygame.mixer.pre_init(44100, -16, 1, 512)
+        pygame.init()
         pygame.mixer.init()
+        
         clock = pygame.time.Clock()
         sounds = [pygame.mixer.Sound(f) for f in sound_sequence]
         for s in sounds:
@@ -120,9 +124,11 @@ class ReportManager:
 
     def play_report_stream(self, sound_sequence):
 
+        pygame.mixer.pre_init(44100, -16, 1, 512)
+        pygame.init()
         clock = pygame.time.Clock()
         while len(sound_sequence) > 0:
-            pygame.mixer.init()
+
             pygame.mixer.music.load(sound_sequence.pop(0))
             pygame.mixer.music.play()
 
@@ -171,8 +177,8 @@ class ReportManager:
         return output_list
 
     def assign_number_directory(self, input_list):
-        output_list = ["numbers/numbers/" + x + ".ogg" for x in input_list[:-1]]
-        last_item = "numbers/numbers_/" + input_list[-1] + ".ogg"
+        output_list = ["numbers/trainNum/" + x + ".ogg" for x in input_list[:-1]]
+        last_item = "numbers/trainNum_end/" + input_list[-1] + ".ogg"
         output_list.append(last_item)
 
         return output_list
@@ -212,3 +218,5 @@ class ReportManager:
             first_list += second_list
             
             return first_list
+
+
