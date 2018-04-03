@@ -25,25 +25,60 @@ class NetworkServicesClient():
         self.server_port = ""
 
     def listen(self, socket):
+        message_part = ""
         while True:
             try:
-
                 message = socket.recv(1024)
-
-                while not message.decode('UTF-8').endswith('\n'):
-                    message += socket.recv(1024)
-
+                
+                if message_part :
+                    #předchozí zpráva došla po částech
+                    message = message_part.encode('UTF-8') + message
+                    message_part = ""
+                          
+                while True :
+                    #pokud zprava neobsahuje \n přijímám dál...
+                    if '\n' in message.decode('UTF-8') :
+                        break
+                    else :
+                         message += socket.recv(1024)
+                        
+                
+                
                 decoded_message = message.decode('UTF-8')
 
-                if decoded_message == "ukoncit":
-                    break
+                buffer = decoded_message.splitlines(True)
 
-                if "-;PING" in decoded_message:
-                    continue
+                #print("Buffer :", buffer)
 
-                if 'SH' in decoded_message:
-                    
-                    process_message.process_message([decoded_message])
+                if len(buffer) > 0 :
+                    """
+                    if delka == 1 :
+                        
+                        print("Process message -- vyhazuji ", buffer.pop())
+                    else :
+                    """
+                    if buffer[-1].endswith('\n'): #vše ok
+
+                        message_to_process = buffer.pop(0) 
+
+                        if decoded_message == "ukoncit":
+                            break
+
+                        if "-;PING" in decoded_message:
+                            continue
+
+                        if 'SH' in decoded_message:
+                            
+                            process_message.process_message([decoded_message])
+                        
+                    else :
+                        #poslední prvek připojím na začátek nové zprávy
+                        data = buffer.pop()
+                        message_part = data
+                        
+        
+
+                
 
             except socket.error:
                 print("Nastala chyba pri prijmu dat...")
