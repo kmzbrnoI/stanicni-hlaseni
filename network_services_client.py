@@ -6,6 +6,7 @@ import time
 import message_parser
 import report_manager
 import system_functions
+import process_message
 
 
 class TCPCommunicationEstablishedError(socket.error):
@@ -22,9 +23,6 @@ class NetworkServicesClient():
         self.device_info = system_functions.DeviceInfo()
         self.server_ip = ""
         self.server_port = ""
-        self.word_list = {'PRIJEDE': 'parts/prijede.ogg', 'ODJEDE': 'parts/odjede.ogg',
-                          'Os': 'trainType/osobni_vlak_cislo.ogg',
-                          'Ku': 'stations/kurim.ogg', 'Bs': 'stations/veverska_bityska.ogg'}
 
     def listen(self, socket):
         while True:
@@ -37,35 +35,15 @@ class NetworkServicesClient():
 
                 decoded_message = message.decode('UTF-8')
 
-                print(decoded_message)
                 if decoded_message == "ukoncit":
                     break
-
-                if decoded_message == "zvuky":
-                    system_functions.download_sound_files_samba("10.0.0.32", "share", self.rm.sound_set)
-                    continue
 
                 if "-;PING" in decoded_message:
                     continue
 
                 if 'SH' in decoded_message:
-                    data = message_parser.parse(decoded_message, ';')
-
-                    print(data)
-
-                    train_number = train_info_list[0]
-                    report_list = []
-
-                    report_list.append("salutation/vazeni_cestujici.ogg")
-                    report_list.append("salutation/prosim_pozor.ogg")
-                    report_list.append(self.word_list[train_info_list[1]])  # osobní vlak, rychlík
-
-                    report_list += self.rm.parse_train_number(train_number)
-
-                    report_list.append(self.word_list[basic_info_list[2]])  # odjede, prijede...
-
-                    self.rm.create_report(report_list)
-
+                    
+                    process_message.process_message([decoded_message])
 
             except socket.error:
                 print("Nastala chyba pri prijmu dat...")
@@ -83,8 +61,11 @@ class NetworkServicesClient():
             clientsocket.send("-;HELLO;1.0\n".encode('UTF-8'))
 
             message = clientsocket.recv(1024)
+            decoded_message = str(message.decode('UTF-8'))
 
-            if message:
+           
+            if 'hello' in decoded_message.lower() : #muze se stat, ze zrovna prijde ping
+                
                 hello_message = message_parser.parse(message.decode('UTF-8'), ";")
 
                 version = hello_message[-1]

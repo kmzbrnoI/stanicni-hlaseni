@@ -128,8 +128,9 @@ def spec(message):
 
 
 def sync(message):
-    print()
-
+    #TODO: bude stahovat všechny zvukové sady?
+    sound_set = "Veronika"
+    system_functions.download_sound_files_samba("10.0.0.32", "share", sound_set)
 
 def change_set(message):
     print()
