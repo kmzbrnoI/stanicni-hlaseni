@@ -41,45 +41,32 @@ class NetworkServicesClient():
                         break
                     else :
                          message += socket.recv(1024)
-                        
-                
-                
+
                 decoded_message = message.decode('UTF-8')
 
                 buffer = decoded_message.splitlines(True)
 
                 #print("Buffer :", buffer)
 
-                if len(buffer) > 0 :
-                    """
-                    if delka == 1 :
-                        
-                        print("Process message -- vyhazuji ", buffer.pop())
-                    else :
-                    """
+                if buffer :
+
                     if buffer[-1].endswith('\n'): #vše ok
 
                         message_to_process = buffer.pop(0) 
 
-                        if decoded_message == "ukoncit":
+                        if message_to_process == "ukoncit":
                             break
 
-                        if "-;PING" in decoded_message:
+                        if "-;PING" in message_to_process:
                             continue
 
-                        if 'SH' in decoded_message:
+                        if 'SH' in message_to_process:
                             
-                            process_message.process_message([decoded_message])
-                        
+                            process_message.process_message([message_to_process])
                     else :
                         #poslední prvek připojím na začátek nové zprávy
-                        data = buffer.pop()
-                        message_part = data
-                        
-        
-
+                        message_part = buffer.pop()
                 
-
             except socket.error:
                 print("Nastala chyba pri prijmu dat...")
 
@@ -95,13 +82,11 @@ class NetworkServicesClient():
             clientsocket.connect((ip, port))
             clientsocket.send("-;HELLO;1.0\n".encode('UTF-8'))
 
-            message = clientsocket.recv(1024)
-            decoded_message = str(message.decode('UTF-8'))
-
-           
-            if 'hello' in decoded_message.lower() : #muze se stat, ze zrovna prijde ping
+            message = self.receive_special_message(clientsocket, "-;HELLO")
+            
+            if 'hello' in message.lower() : #muze se stat, ze zrovna prijde ping
                 
-                hello_message = message_parser.parse(message.decode('UTF-8'), ";")
+                hello_message = message_parser.parse(message, ";")
 
                 version = hello_message[-1]
 
@@ -127,12 +112,43 @@ class NetworkServicesClient():
         register_message = self.device_info.area + ";SH;REGISTER\n";
         socket.send(register_message.encode('UTF-8'))  # musím na server odeslat registrační zprávu
 
-        message = socket.recv(1024)
+        message = self.receive_special_message(socket, "-;MOD-CAS")
 
-        while not message.decode('UTF-8').endswith('\n'):
-            message += clientsocket.recv(1024)
+        if message:  # tady potom přidat try, zda OŘ existuje
+            return socket
+
+
+    def receive_special_message(self, socket, reply):
+        #metoda slouží pro příjem potvrzovací odpovědi na speciální zprávu napr. HELLO
+        message_part = ""
+        
+        message = socket.recv(512)
+        
+        if message_part :
+            #předchozí zpráva došla po částech
+            message = message_part.encode('UTF-8') + message
+            message_part = ""
+                  
+        while True :
+            #pokud zprava neobsahuje \n přijímám dál...
+            if '\n' in message.decode('UTF-8') :
+                break
+            else :
+                 message += socket.recv(512)
 
         decoded_message = message.decode('UTF-8')
 
-        if decoded_message:  # tady potom přidat try, zda OŘ existuje
-            return socket
+        buffer = decoded_message.splitlines(True)
+
+        if buffer :
+
+            if buffer[-1].endswith('\n'): #vše ok
+
+                for item in buffer :
+                    #v bufferu mohou být klidně dvě zprávy
+                    if reply in item :
+                        return item
+                    
+            else :
+                #poslední prvek připojím na začátek nové zprávy
+                message_part = buffer.pop()
