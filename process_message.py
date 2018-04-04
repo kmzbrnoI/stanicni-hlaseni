@@ -149,7 +149,7 @@ def parse_message(message):
 
         for character in item:  # postupně prohledám jednotlivé znaky
             # pokud najdu ve zprávě středník, ukončuji cyklus a do parse_item uložím True
-            if (';') in character:
+            if ';' in character:
                 parse_item = True
                 break
 
@@ -158,12 +158,9 @@ def parse_message(message):
             item = message_parser.parse(item, ";")
 
             # rekurzivní volání pro vnořené objekty
-            try:
-                # zkusím zavolat rekurzi
-                return message[:-1] + parse_message(item)
+            parsed_item = parse_message(item)
 
-            except Exception as e:
-                # pokud se vrátí vyjímka, vím, že jsem na konci parsovani
+            if parsed_item is not None :
+                return message[:-1] + parsed_item
+            else :
                 return message[:-1] + item
-
-
