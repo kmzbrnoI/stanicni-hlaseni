@@ -1,14 +1,10 @@
 #!/bin/bash  
 
-#ln wpa_supplicant.conf /etc/wpa_supplicant/wpa_supplicant.conf 
-#wpa_supplicant -iwlan0 -cwpa_supplicant.conf 
-
-dhclient -r
-#shutdown wpa_supplicant
-killall wpa_supplicant
-#down interface
-ifdown --force wlan0
-sleep 1
+sudo dhclient -r
+sudo shutdown wpa_supplicant
+sudo killall wpa_supplicant
+sudo ifdown --force wlan0
+sudo sleep 1
 
 sudo wpa_supplicant -cwpa_supplicant.conf -B -Dwext -iwlan0 
 
