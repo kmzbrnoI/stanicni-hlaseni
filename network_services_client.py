@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import socket
-import time
+import threading, time
 
 import message_parser
 import report_manager
@@ -61,8 +61,8 @@ class NetworkServicesClient():
                             continue
 
                         if 'SH' in message_to_process:
+                            threading.Thread(target=process_message.process_message([message_to_process])).start()
                             
-                            process_message.process_message([message_to_process])
                     else :
                         #poslední prvek připojím na začátek nové zprávy
                         message_part = buffer.pop()

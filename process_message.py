@@ -1,6 +1,6 @@
 import message_parser
 import report_manager
-import time
+import system_functions
 
 
 class UnknownMessageError(Exception):
@@ -34,7 +34,8 @@ def process_message(message):
     elif message_type == "sets-list":
         sets_list(message)
     else:
-        raise UnknownMessageTypeError("Neznamy typ zpravy.")
+        print("Zprava neni naimplementovana...")
+        #raise UnknownMessageTypeError("Neznamy typ zpravy.")
 
 
 def prijede(message):
@@ -128,9 +129,17 @@ def spec(message):
 
 
 def sync(message):
+
+    info_message = "Ku" + ";SH;SYNC;STARTED;\n";
+    socket.send(info_message.encode('UTF-8'))  # musím na server odeslat registrační zprávu
+    
     #TODO: bude stahovat všechny zvukové sady?
+    
     sound_set = "Veronika"
-    system_functions.download_sound_files_samba("10.0.0.32", "share", sound_set)
+    system_functions.download_sound_files_samba("10.30.137.105", "share", sound_set)
+
+    info_message = "Ku" + ";SH;SYNC;DONE;\n";
+    socket.send(info_message.encode('UTF-8'))  # musím na server odeslat registrační zprávu
 
 def change_set(message):
     print()
@@ -138,6 +147,7 @@ def change_set(message):
 
 def sets_list(message):
     print()
+
 
 
 def parse_message(message):
@@ -164,3 +174,5 @@ def parse_message(message):
                 return message[:-1] + parsed_item
             else :
                 return message[:-1] + item
+
+
