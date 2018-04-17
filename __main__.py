@@ -1,46 +1,56 @@
+import logging
 import socket
+import time
 
 import network_services_client
 import system_functions
 import udp_discover
 
 
-class OutdatedVersionError(Exception):
-    pass
-
-
 def main():
-    try:
-        device_info = system_functions.DeviceInfo()
-        server_ip, server_port = udp_discover.get_ip(device_info.server_name)
-        client = network_services_client.NetworkServicesClient()
+    logging.basicConfig(level=logging.DEBUG)
+    server_ip = ''
+    client = network_services_client.NetworkServicesClient()
+    device_info = system_functions.DeviceInfo()
 
-        for _ in range(5):
-            print("TCP pokus ", _ + 1)
-            client_socket, version = client.connect(server_ip, int(server_port))
+    while True:
 
-            if version >= 1:
-                registered_socket = client.register_device(client_socket)
-                if registered_socket:
-                    client.listen(registered_socket)
+        try:
 
-            else:
-                raise OutdatedVersionError("Je potreba aktualizovat verzi..")
+            while not server_ip:
+                server_ip, server_port = udp_discover.get_ip(device_info.server_name)
 
-    except network_services_client.TCPCommunicationEstablishedError:
-        print("Nepovedlo se navazani komunikace pres TCP")
+            logging.debug("Server nalezen: {0}:{1}".format(server_ip, server_port))
 
-    except network_services_client.TCPTimeoutError:
-        print("TCP Timeout.")
+            for _ in range(5):
+                logging.debug("TCP pokus {0}".format((_ + 1)))
 
-    except udp_discover.ServerNotFoundError:
-        print("Server nenalezen.")
+                client_socket = client.connect(server_ip, int(server_port))
 
-    except udp_discover.UDPTimeoutError:
-        print("UDP Timeout.")
+                hello_message = "-;HELLO;1.0\n"
 
-    except OutdatedVersionError:
-        print("Zastaralá verze na serveru.")
+                client.send_message(client_socket, hello_message)
+
+                client.listen(client_socket)
+
+            server_ip = ''
+
+        except network_services_client.TCPCommunicationEstablishedError:
+            logging.error("Nepovedlo se navazani komunikace pres TCP")
+
+        except network_services_client.TCPTimeoutError:
+            logging.warning("TCP Timeout.")
+
+        except udp_discover.ServerNotFoundError:
+            time.sleep(30)
+            logging.error("Server nenalezen.")
+
+        except udp_discover.UDPTimeoutError:
+            logging.error("UDP Timeout.")
+            time.sleep(5)
+
+        except network_services_client.OutdatedVersionError:
+            logging.critical("Zastaralá verze na serveru.")
 
 
 if __name__ == "__main__":
