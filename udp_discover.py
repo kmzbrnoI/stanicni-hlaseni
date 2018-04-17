@@ -1,4 +1,5 @@
 import socket
+import logging
 
 import system_functions
 
@@ -22,10 +23,9 @@ def udp_broadcast(port, data):
 
 
 def get_ip(name):
-    port = 5880;
+    port = 5880
     # Metoda slouží pro odeslání informací o zařízení (RPI) na server a získání odpovědi skrze broadcast od serveru.
-    # print("Spustim UDP listener...")
-
+    
     for _ in range(3):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -38,11 +38,10 @@ def get_ip(name):
         message = ""
         device = ""
 
-        print("Pocet pokusu pro UDP: ", _ + 1)
+        logging.debug("Pocet pokusu pro UDP: {0}".format(_ + 1))
 
         try:
             message = s.recvfrom(4096)
-            # print("Zprava: ", message)
 
             if message:
 
@@ -56,14 +55,13 @@ def get_ip(name):
                     server = str(device).split(";")
                     server_ip = server[4]
                     server_port = server[5]
-
+                    
                     return (server_ip, server_port)
-
-                else:
-                    raise ServerNotFoundError("Nenalezen server s předaným parametrem")
-
 
         except socket.timeout:
             print("Nedosla odpoved na UDP (timeout)")
 
-    raise UDPTimeoutError("UDP Timeout")
+        except ServerNotFoundError(Exception):
+            print("Server nenalezen...")
+
+    raise ServerNotFoundError("Server nenalezen...")
