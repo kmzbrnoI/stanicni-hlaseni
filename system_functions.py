@@ -1,9 +1,11 @@
 #!/usr/bin/python3
 
+import logging
 import os
-import subprocess
 import socket
+import subprocess
 from configparser import ConfigParser
+from subprocess import Popen, PIPE
 
 
 def play_sound(file_name):
@@ -16,26 +18,35 @@ def download_sound_files_github():
 
 
 def download_sound_files_samba(server_ip, home_folder, sound_set):
-    subprocess.call(["./download_sound_set.sh", server_ip, home_folder, sound_set]);
+    try:
+        logging.info("Aktualizace zvukove sady: {0}".format(sound_set))
+        process = Popen(["./download_sound_set.sh", server_ip, home_folder, sound_set], stdout=PIPE, stderr=PIPE)
+
+        # Pro jistotu nastavuji timeout na 60s.
+        output, error = process.communicate(timeout=60)
+        return (process.returncode, output, error)
+
+    except subprocess.TimeoutExpired as e:
+        # odchytávám jenom v případě timeout, všechny ostatní chyby jsou uloženy v process
+        return (1, "timeout", "timeout")
 
 
 def get_device_ip():
-
     return socket.gethostbyname(socket.gethostname())
+
 
 def setup_wifi():
     subprocess.call(["./wifi.sh"])
-    
-    
+
+
 class DeviceInfo:
 
     def __init__(self):
-      self.ssid = ''
-      self.password = ''
-      self.server_name = ''
-      self.area = ''
-      self.read_device_config()
-
+        self.ssid = ''
+        self.password = ''
+        self.server_name = ''
+        self.area = ''
+        self.read_device_config()
 
     def read_device_config(self):
         # funkce pro načtení konfiguračního souboru
@@ -49,4 +60,3 @@ class DeviceInfo:
         self.server_name = (parser[server]['name'])
         area = parser.sections()[2]
         self.area = (parser[area]['name'])
-
