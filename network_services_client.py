@@ -33,7 +33,7 @@ class NetworkServicesClient:
 
     def listen(self, socket):
         message_part = ""
-        buffer = []
+        message_buffer = []
 
         while True:
             try:
@@ -57,13 +57,13 @@ class NetworkServicesClient:
                 logging.debug("Prijata zprava: {0}".format(message))
                 decoded_message = message.decode('UTF-8')
 
-                buffer += decoded_message.splitlines(True)
+                message_buffer += decoded_message.splitlines(True)
 
-                while buffer:
+                while message_buffer:
 
-                    if buffer[-1].endswith('\n'):  # vše ok
+                    if message_buffer[-1].endswith('\n'):  # vše ok
 
-                        message_to_process = buffer.pop(0)
+                        message_to_process = message_buffer.pop(0)
 
                         if "-;HELLO" in message_to_process:
                             self.process_hello_response(socket, message_to_process)
@@ -71,17 +71,24 @@ class NetworkServicesClient:
                         elif "REGISTER-RESPONSE;" in message_to_process:
                             self.process_register_response(socket, message_to_process)
 
-                        elif ('SH' in message_to_process) and self.connection_established:
+                        elif "NESAHAT" in message_to_process:
+                            self.sync(socket, message_to_process)
+
+                        elif "SETS-LIST" in message_to_process:
+                            self.sets_list(socket, message_to_process)
+
+                        elif (('SH;PRIJEDE;' in message_to_process) or ("SH;ODJEDE;" in message_to_process) or (
+                                "SH;PROJEDE;" in message_to_process)) and self.connection_established:
                             logging.debug("Zpracovava se: {0}".format(message_to_process))
                             threading.Thread(target=process_message.process_message(message_to_process)).start()
 
                     else:
                         # vyhodím poslední prvek z bufferu a připojím na začátek nové zprávy
-                        message_part = buffer.pop()
+                        message_part = message_buffer.pop()
                         break
 
-            except Exception:
-                logging.warning("TCP Timeout...")
+            except Exception as e:
+                logging.warning("TCP Timeout...{0}".format(e))
                 break
 
     def send_message(self, socket, message):
@@ -123,7 +130,7 @@ class NetworkServicesClient:
 
         if state == 'OK':
             self.connection_established = True
-            logging.info("Spojeni navazano.")
+            logging.info("Spojení navázano")
         elif state == 'ERR':
             error_note = register_response[4]
             error_note = error_note.replace("\n", "").replace("\r", "")
@@ -149,3 +156,33 @@ class NetworkServicesClient:
         except socket.timeout:
             logging.warning("TCP Timeout")
             # raise TCPTimeoutError("TCP Timeout")
+
+    def sync(self, socket, message):
+
+        info_message = self.device_info.area + ";SH;SYNC;STARTED;\n"
+        self.send_message(socket, info_message)
+
+        # TODO: bude stahovat všechny zvukové sady?
+        sound_set = self.rm.sound_set
+
+        return_code, output, error = system_functions.download_sound_files_samba("server-tt", "shZvuky", sound_set)
+
+        # TODO: Kde vezmu verzi?
+
+        version = "1.0"
+
+        return_code = str(return_code)
+
+        if return_code == '0':
+            logging.info("Aktualizace zvukové sady proběhla úspěšně.")
+            info_message = self.device_info.area + ";SH;SYNC;DONE;" + sound_set + ";" + version + "\n"
+        else:
+            logging.error("Při aktualizace zvukové sady nastala chyba.")
+            info_message = self.device_info.area + ";SH;SYNC;ERR;" + version + ";" + str(error) + "\n"
+
+        self.send_message(socket, info_message)
+
+    def sets_list(self, socket, message):
+
+        info_message = self.device_info.area + ";SH;SETS-LIST;{" + self.rm.sound_set + "};\n"
+        self.send_message(socket, info_message)
