@@ -1,5 +1,6 @@
 import os
 import wave
+import logging
 from configparser import ConfigParser
 
 import pygame.mixer
@@ -37,13 +38,13 @@ class ReportManager:
 
     def print_sound_config(self):
         # funkce pouze pro správné otestování funkčnosti
-        print("Budou vyuzity tyto parametry:")
-        print("Zvukova sada: ", self.sound_set)
-        print("Rodicovska zvukova sada: ", self.parent_sound_set)
-        print("Gong: ", self.play_gong)
-        print("Osloveni: ", self.salutation)
-        print("Cislo vlaku: ", self.train_num)
-        print("Cas: ", self.time)
+        logging.debug("Budou vyuzity tyto parametry:")
+        logging.debug("Zvukova sada: ".format(self.sound_set))
+        logging.debug("Rodicovska zvukova sada: ".format(self.parent_sound_set))
+        logging.debug("Gong: ".format(self.play_gong))
+        logging.debug("Osloveni: ".format(self.salutation))
+        logging.debug("Cislo vlaku: ".format(self.train_num))
+        logging.debug("Cas: ".format(self.time))
 
     def define_sound_sequence(self, sound_sequnce):
         # funkce na úpravu pole pro generování finálního zvuku, podle parametru konfiguračního souboru
@@ -57,7 +58,7 @@ class ReportManager:
                 if "salutation" in sound:
                     elements_to_remove.append(sound)
             if not self.train_num:
-                if "numbers" in sound:
+                if "trainNum" in sound:
                     elements_to_remove.append(sound)
             if not self.time:
                 if "time" in sound:
@@ -186,7 +187,7 @@ class ReportManager:
     def parse_train_number(self, train_number):
 
         train_number_len = len(train_number)
-        print("Train number: ", train_number)
+        logging.debug("Train number: ".format(train_number))
 
         if train_number_len % 2 == 0:  # zjistím, jestli je delka čísla vlaku sudá
             first_part, second_part = train_number[:len(train_number) // 2], train_number[len(train_number) // 2:]
