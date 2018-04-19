@@ -77,16 +77,16 @@ class ReportManager:
             if (os.path.exists(self.sound_set + "/" + sound)):
                 sound_sequence[i] = self.sound_set + "/" + sound
             else:
-                print('Nenasel jsem soubor v prirazenem adresari: %s' % sound)
+                logging.debug('Nenasel jsem soubor v prirazenem adresari: %s' % sound)
                 if (os.path.exists(self.parent_sound_set + "/" + sound)):
                     sound_sequence[i] = self.parent_sound_set + "/" + sound
-                    print("Vyuziji soubor z rodicoskeho adresare...")
+                    logging.debug("Vyuziji soubor z rodicoskeho adresare...")
                 elif (os.path.exists("default/" + sound)):
                     # tahle cast se nakonec asi nebude potreba
                     sound_sequence[i] = "default/" + sound
-                    print("Vyuziji soubor z defaultniho adresare...")
+                    logging.debug("Vyuziji soubor z defaultniho adresare...")
                 else:
-                    print("Nenasel jsem pozadovany soubor!")
+                    logging.error("Nenasel jsem pozadovany soubor!")
                     exist = False
 
         return exist
