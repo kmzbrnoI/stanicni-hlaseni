@@ -4,8 +4,9 @@ import logging
 import os
 import socket
 import subprocess
+import time
 from configparser import ConfigParser
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, DEVNULL
 
 
 def play_sound(file_name):
@@ -35,10 +36,20 @@ def get_device_ip():
     return socket.gethostbyname(socket.gethostname())
 
 
-def setup_wifi():
-    subprocess.call(["./wifi.sh"])
+def setup_wifi(wifi_ssid):
 
+    proc = Popen(["iwgetid"], stdout=PIPE, stderr=PIPE)
+    connected, err = proc.communicate()
+    exitcode = proc.returncode
+    wait = False
 
+    if not wifi_ssid in str(connected) :
+        subprocess.call(["./wifi.sh"], stderr=DEVNULL, stdout=DEVNULL)
+        wait = True
+
+    if wait :
+        time.sleep(15)
+    
 class DeviceInfo:
 
     def __init__(self):

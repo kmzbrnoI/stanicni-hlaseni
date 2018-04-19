@@ -8,11 +8,13 @@ import udp_discover
 
 
 def main():
+    system_functions.setup_wifi("LRKV")
     logging.basicConfig(level=logging.DEBUG)
     server_ip = ''
     client = network_services_client.NetworkServicesClient()
     device_info = system_functions.DeviceInfo()
-
+    
+    
     while True:
 
         try:
