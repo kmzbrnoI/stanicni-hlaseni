@@ -1,3 +1,5 @@
+import logging
+
 import message_parser
 import report_manager
 import system_functions
@@ -29,17 +31,23 @@ class TrainSet:
         self.departure_time = message[6] if len(message) > 6 else ''
 
     def print_info(self):
-        print("Train number:", self.train_number)
-        print("Train type: ", self.train_type)
-        print("Railway: ", self.railway)
-        print("Start station: ", self.start_station)
-        print("Final station: ", self.final_station)
-        print("Arrival time: ", self.arrival_time)
-        print("Departure time: ", self.departure_time)
+        logging.debug("Train number: {0}".format(self.train_number))
+        logging.debug("Train type: {0}".format(self.train_type))
+        logging.debug("Railway: {0}".format(self.railway))
+        logging.debug("Start station: {0}".format(self.start_station))
+        logging.debug("Final station: {0}".format(self.final_station))
+        logging.debug("Arrival time: {0}".format(self.arrival_time))
+        logging.debug("Departure time: {0}".format(self.departure_time))
 
 
 def join_path(train_set):
-    train_set.train_type = "trainType/" + train_set.train_type + "_cislo.ogg"
+    rm = report_manager.ReportManager()
+
+    if rm.train_num :
+        train_set.train_type = "trainType/" + train_set.train_type + "_cislo.ogg"
+    else :
+        train_set.train_type = "trainType/" + train_set.train_type + ".ogg"
+
     train_set.railway = "numbers/railway/" + train_set.railway + ".ogg"
     train_set.start_station = "stations/" + train_set.start_station + ".ogg"
     train_set.final_station = "stations/" + train_set.final_station + ".ogg"
@@ -48,6 +56,7 @@ def join_path(train_set):
 
 
 def parse_train_set(message):
+    #naparsuji data a ulozim do TrainSet
     train_set_data = message_parser.parse(message[3], ";")
     train_set = TrainSet(train_set_data)
     train_set.print_info()
@@ -65,6 +74,7 @@ def prepare_report(train_set):
 
 
 def process_message(message):
+    #ziskanou zpravu nejdrive celou naparsuji
     parsed_message = message_parser.parse(message, ";")
 
     last_item = parsed_message.pop()
@@ -74,12 +84,16 @@ def process_message(message):
 
     parsed_message.append(last_item)
 
+    #ziskam typ hlaseni
     message_type = parsed_message[2].lower()
 
+    #naparsuji soupravu
     train_set = parse_train_set(parsed_message)
 
+    #k naparsovanym datum pridam cesty k souborum
     train_set = join_path(train_set)
 
+    #pripravim si spolecnou cast hlaseni
     report = prepare_report(train_set)
 
     if message_type == "prijede":
@@ -88,14 +102,8 @@ def process_message(message):
         prijede(report, train_set)
     elif message_type == "projede":
         projede(message)
-    elif message_type == "sync":
-        sync(message)
-    elif message_type == "change-set":
-        change_set(message)
-    elif message_type == "sets-list":
-        sets_list(message)
     else:
-        print("Zprava neni naimplementovana...")
+        logging.error("Zprava neni naimplementovana...")
         # raise UnknownMessageTypeError("Neznamy typ zpravy.")
 
 
@@ -132,7 +140,7 @@ def prijede(report, train_set):
 
     report.append(train_set.start_station)
 
-    train_set.arrival_time = "22:23"
+    #train_set.arrival_time = "22:23"
     # pravidelny prijezd 22 hodiny 23 minuty
     if (train_set.arrival_time != '') and rm.time:
         report += prepare_time(train_set, "prijede")
@@ -161,7 +169,7 @@ def odjede(report, train_set):
     report.append(train_set.final_station)
 
     # pravidelny odjezd 22 hodiny 23 minuty
-    train_set.departure_time = "22:23"
+    #train_set.departure_time = "22:23"
 
     if (train_set.departure_time != '') and rm.time:
         report += prepare_time(train_set, "odjede")
@@ -175,31 +183,6 @@ def odjede(report, train_set):
 
 
 def projede(message):
-    print()
-
-
-def spec(message):
-    print()
-
-
-def sync(message):
-    info_message = "Ku" + ";SH;SYNC;STARTED;\n"
-    socket.send(info_message.encode('UTF-8')) 
-
-    # TODO: bude stahovat všechny zvukové sady?
-
-    sound_set = "Veronika"
-    system_functions.download_sound_files_samba("10.30.137.105", "share", sound_set)
-
-    info_message = "Ku" + ";SH;SYNC;DONE;\n"
-    socket.send(info_message.encode('UTF-8'))
-
-
-def change_set(message):
-    print()
-
-
-def sets_list(message):
     print()
 
 
