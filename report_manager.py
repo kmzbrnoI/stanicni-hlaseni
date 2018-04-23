@@ -151,9 +151,9 @@ class ReportManager:
                 self.play_report_ram(redefined_sound_sequence)
 
             else:
-                print('Nastala chyba se ctenim souboru...')
+                logging.error('Nastala chyba se ctenim souboru...')
         else:
-            print("Seznam pro hlaseni neobsahuje zadne polozky!")
+            logging.error("Seznam pro hlaseni neobsahuje zadne polozky!")
 
     def find_audio_number(self, number):
         sound_set = []

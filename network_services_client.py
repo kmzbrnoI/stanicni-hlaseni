@@ -4,6 +4,8 @@ import logging
 import socket
 import threading
 import time
+from datetime import datetime 
+from collections import deque
 
 import message_parser
 import process_message
@@ -15,7 +17,7 @@ class TCPCommunicationEstablishedError(socket.error):
     pass
 
 
-class TCPTimeoutError(socket.timeout):
+class TCPTimeoutError(OSError):
     pass
 
 
@@ -33,15 +35,15 @@ class NetworkServicesClient:
 
     def listen(self, socket):
         message_part = ""
-        message_buffer = []
+        message_queue = deque()
 
         while True:
             try:
 
                 message = socket.recv(2048)
 
-                socket.settimeout(60)
-
+                socket.settimeout(30)
+                    
                 if message_part:
                     # předchozí zpráva došla po částech
                     message = message_part.encode('UTF-8') + message
@@ -57,23 +59,24 @@ class NetworkServicesClient:
                 logging.debug("Prijata zprava: {0}".format(message))
                 decoded_message = message.decode('UTF-8')
 
-                message_buffer += decoded_message.splitlines(True)
+                message_queue += decoded_message.splitlines(True)
 
-                while message_buffer:
+                while message_queue:
+                    
+                    if message_queue[-1].endswith('\n'):  # vše ok
 
-                    if message_buffer[-1].endswith('\n'):  # vše ok
-
-                        message_to_process = message_buffer.pop(0)
+                        message_to_process = message_queue.popleft()
 
                         if "-;HELLO" in message_to_process:
                             self.process_hello_response(socket, message_to_process)
 
                         elif "REGISTER-RESPONSE;" in message_to_process:
                             self.process_register_response(socket, message_to_process)
-
                         elif "NESAHAT" in message_to_process:
-                            self.sync(socket, message_to_process)
-
+                            message_to_process = "oř;SH;CHANGE-SET;sada"
+                            self.change_set(socket, message_to_process)
+                        elif "CHANGE-SET" in message_to_process:
+                            self.change_set(socket, message_to_process)
                         elif "SETS-LIST" in message_to_process:
                             self.sets_list(socket, message_to_process)
 
@@ -84,12 +87,16 @@ class NetworkServicesClient:
 
                     else:
                         # vyhodím poslední prvek z bufferu a připojím na začátek nové zprávy
-                        message_part = message_buffer.pop()
+                        message_part = message_queue.popleft()
                         break
 
-            except Exception as e:
-                logging.warning("TCP Timeout...{0}".format(e))
+               
+            except OSError as e:
+                logging.warning("Connection error: {0}".format(e))
                 break
+            
+            except Exception as e:
+                logging.warning("Connection error: {0}".format(e))
 
     def send_message(self, socket, message):
         try:
@@ -115,7 +122,7 @@ class NetworkServicesClient:
         logging.debug("Verze hello: {0}".format(version))
 
         if version >= 1:
-            register_message = self.device_info.area + ";SH;REGISTER\n"
+            register_message = self.device_info.area + ";SH;REGISTER;"+ self.rm.sound_set +";1.0\n"
             self.send_message(socket, register_message)
 
         else:
@@ -142,20 +149,20 @@ class NetworkServicesClient:
                 logging.error("Vnitřní chyba serveru, více info na serveru")
 
     def connect(self, ip, port):
-
+        
         try:
             client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            client_socket.settimeout(20)
             client_socket.connect((ip, port))
 
             return client_socket
 
-        except socket.error:
-            # raise TCPCommunicationEstablishedError("Server neni zapnuty!")
-            logging.warning("Nepodarilo se navazat komunikaci se serverem Error")
+        except OSError as e:
+            logging.warning("Connection error: {0}".format(e))
+                
+        except Exception as e:
+            logging.warning("Connection error: {0}".format(e))
 
-        except socket.timeout:
-            logging.warning("TCP Timeout")
-            # raise TCPTimeoutError("TCP Timeout")
 
     def sync(self, socket, message):
 
@@ -185,4 +192,20 @@ class NetworkServicesClient:
     def sets_list(self, socket, message):
 
         info_message = self.device_info.area + ";SH;SETS-LIST;{" + self.rm.sound_set + "};\n"
+        self.send_message(socket, info_message)
+
+    def change_set(self, socket, message):
+        parsed_message = message_parser.parse(message, ";")
+        sound_set = parsed_message[3]
+        
+        #TODO: Dostupne sady ulozit do configu?
+
+        set_list = ["Veronika", "Zbynek", "Ivona"]
+
+        if sound_set in set_list :
+            self.rm.sound_set = sound_set
+            info_message = self.device_info.area + ";SH;CHANGE-SET;OK;\n"
+        else :
+            info_message = self.device_info.area + ";SH;CHANGE-SET;ERR;SET_NOT_AVAILABLE\n"
+
         self.send_message(socket, info_message)

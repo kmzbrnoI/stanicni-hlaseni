@@ -53,6 +53,7 @@ def main():
 
         except network_services_client.OutdatedVersionError:
             logging.critical("Zastaralá verze na serveru.")
+            break
 
 
 if __name__ == "__main__":

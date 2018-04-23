@@ -99,7 +99,7 @@ def process_message(message):
     if message_type == "prijede":
         prijede(report, train_set)
     elif message_type == "odjede":
-        prijede(report, train_set)
+        odjede(report, train_set)
     elif message_type == "projede":
         projede(message)
     else:
