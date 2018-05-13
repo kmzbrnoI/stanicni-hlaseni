@@ -1,0 +1,10 @@
+[Unit]
+Description=stanicni-hlaseni
+
+[Service]
+Type=simple
+WorkingDirectory=/home/pi/Desktop/stanicni-hlaseni/
+ExecStart=/usr/bin/python3.5 /home/pi/Desktop/stanicni-hlaseni/__main__.py
+
+[Install]
+WantedBy=multi-user.target
