@@ -1,4 +1,5 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 
 import logging
 import socket
@@ -8,12 +9,12 @@ from datetime import datetime
 from collections import deque
 
 import message_parser
-import process_message
+import process_report
 import report_manager
 import system_functions
 
 
-class TCPCommunicationEstablishedError(socket.error):
+class TCPCommunicationEstablishedError(OSError):
     pass
 
 
@@ -25,7 +26,7 @@ class OutdatedVersionError(Exception):
     pass
 
 
-class NetworkServicesClient:
+class TCPConnectionManager:
     def __init__(self):
         self.rm = report_manager.ReportManager()
         self.device_info = system_functions.DeviceInfo()
@@ -39,11 +40,8 @@ class NetworkServicesClient:
 
         while True:
             try:
-
                 message = socket.recv(2048)
 
-                socket.settimeout(30)
-                    
                 if message_part:
                     # předchozí zpráva došla po částech
                     message = message_part.encode('UTF-8') + message
@@ -56,60 +54,54 @@ class NetworkServicesClient:
                     else:
                         message += socket.recv(2048)
 
-                logging.debug("Prijata zprava: {0}".format(message))
                 decoded_message = message.decode('UTF-8')
-
+                decoded_message = decoded_message.replace("\r", "") #rovnou vyhodit \r 
                 message_queue += decoded_message.splitlines(True)
 
                 while message_queue:
                     
                     if message_queue[-1].endswith('\n'):  # vše ok
-
                         message_to_process = message_queue.popleft()
-
+                        
+                        message_to_process = message_to_process.replace("\n", "") #dale uz neodesilat \n 
+                        
                         if "-;HELLO" in message_to_process:
                             self.process_hello_response(socket, message_to_process)
-
                         elif "REGISTER-RESPONSE;" in message_to_process:
                             self.process_register_response(socket, message_to_process)
-                        elif "NESAHAT" in message_to_process:
-                            message_to_process = "oř;SH;CHANGE-SET;sada"
-                            self.change_set(socket, message_to_process)
+                        elif "SYNC" in message_to_process:
+                            self.sync(socket, message_to_process)
                         elif "CHANGE-SET" in message_to_process:
                             self.change_set(socket, message_to_process)
                         elif "SETS-LIST" in message_to_process:
                             self.sets_list(socket, message_to_process)
-
                         elif (('SH;PRIJEDE;' in message_to_process) or ("SH;ODJEDE;" in message_to_process) or (
                                 "SH;PROJEDE;" in message_to_process)) and self.connection_established:
                             logging.debug("Zpracovava se: {0}".format(message_to_process))
-                            threading.Thread(target=process_message.process_message(message_to_process)).start()
-
+                            threading.Thread(target=process_report.process_report(message_to_process)).start()
                     else:
                         # vyhodím poslední prvek z bufferu a připojím na začátek nové zprávy
                         message_part = message_queue.popleft()
                         break
 
-               
             except OSError as e:
                 logging.warning("Connection error: {0}".format(e))
                 break
             
             except Exception as e:
                 logging.warning("Connection error: {0}".format(e))
+                break
 
     def send_message(self, socket, message):
         try:
             socket.send(message.encode('UTF-8'))
-
-        except socket.error:
-            # raise TCPCommunicationEstablishedError("Server neni zapnuty!")
+            
+        except TCPCommunicationEstablishedError:
             logging.error("Nepodarilo se odeslat zpravu na serveru...")
-
+           
         except socket.timeout:
             logging.warning("TCP Timeout...")
-            # raise TCPTimeoutError("TCP Timeout")
-
+           
     def process_hello_response(self, socket, message):
 
         hello_message = message_parser.parse(message, ";")
@@ -165,7 +157,8 @@ class NetworkServicesClient:
 
 
     def sync(self, socket, message):
-
+        #TODO: stahovovat ke korenu
+        
         info_message = self.device_info.area + ";SH;SYNC;STARTED;\n"
         self.send_message(socket, info_message)
 
@@ -191,14 +184,20 @@ class NetworkServicesClient:
 
     def sets_list(self, socket, message):
 
-        info_message = self.device_info.area + ";SH;SETS-LIST;{" + self.rm.sound_set + "};\n"
+        sound_sets = system_functions.list_samba("server-tt", "shZvuky")
+
+        sounds_set_string = ""
+        sounds_set_string = ",".join(sound_sets )
+            
+        info_message = self.device_info.area + ";SH;SETS-LIST;{" + sounds_set_string + "};\n"
         self.send_message(socket, info_message)
 
     def change_set(self, socket, message):
         parsed_message = message_parser.parse(message, ";")
         sound_set = parsed_message[3]
         
-        #TODO: Dostupne sady ulozit do configu?
+        #TODO: Dodelat, otestovat
+        #budu kontrolovat ze serveru
 
         set_list = ["Veronika", "Zbynek", "Ivona"]
 
