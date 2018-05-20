@@ -8,5 +8,5 @@ sudo sleep 1
 
 sudo wpa_supplicant -cwpa_supplicant.conf -B -Dwext -iwlan0 
 
-sudo systemctl daemon-reload
+#sudo systemctl daemon-reload
 sudo systemctl restart dhcpcd
