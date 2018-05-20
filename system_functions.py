@@ -73,6 +73,8 @@ class DeviceInfo:
         self.password = ''
         self.server_name = ''
         self.area = ''
+        self.verbosity = ''
+        self.path = ''
         self.read_device_config()
 
     def read_device_config(self):
@@ -82,8 +84,10 @@ class DeviceInfo:
 
         wifi = parser.sections()[0]
         self.ssid = (parser[wifi]['ssid'])
-        self.password = (parser[wifi]['password'])
         server = parser.sections()[1]
         self.server_name = (parser[server]['name'])
         area = parser.sections()[2]
         self.area = (parser[area]['name'])
+        logging = parser.sections()[3]
+        self.verbosity = (parser[logging]['verbosity'])
+        self.path = (parser[logging]['path'])

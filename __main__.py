@@ -1,19 +1,38 @@
+#!/usr/bin/env python3
+
 import logging
+import os
 import socket
 import time
 
-import network_services_client
+import tcp_connection_manager
 import system_functions
 import udp_discover
 
+def get_logging_level(verbosity):
+    return {
+        'debug': logging.DEBUG,
+        'info': logging.INFO,
+        'warning': logging.WARNING,
+        'error': logging.ERROR,
+        'critical': logging.CRITICAL        
+    }.get(verbosity, logging.DEBUG)  
 
 def main():
-    system_functions.setup_wifi("LRKV")
-    logging.basicConfig(level=logging.DEBUG)
-    server_ip = ''
-    client = network_services_client.NetworkServicesClient()
+
     device_info = system_functions.DeviceInfo()
+
+    verbosity = get_logging_level(device_info.verbosity)
+    path = os.path.join(device_info.path, 'sh.log')
+    logging.basicConfig(filename=path,level=verbosity)
     
+    
+    while True:
+        if system_functions.setup_wifi(device_info.ssid) :
+            break
+     
+    server_ip = ''
+    client = tcp_connection_manager.TCPConnectionManager()
     
     while True:
 
@@ -37,10 +56,10 @@ def main():
 
             server_ip = ''
 
-        except network_services_client.TCPCommunicationEstablishedError:
+        except tcp_connection_manager.TCPCommunicationEstablishedError:
             logging.error("Nepovedlo se navazani komunikace pres TCP")
 
-        except network_services_client.TCPTimeoutError:
+        except tcp_connection_manager.TCPTimeoutError:
             logging.warning("TCP Timeout.")
 
         except udp_discover.ServerNotFoundError:
@@ -51,8 +70,8 @@ def main():
             logging.error("UDP Timeout.")
             time.sleep(5)
 
-        except network_services_client.OutdatedVersionError:
-            logging.critical("Zastaralá verze na serveru.")
+        except tcp_connection_manager.OutdatedVersionError:
+            logging.critical("Zastarala verze na serveru.")
             break
 
 
