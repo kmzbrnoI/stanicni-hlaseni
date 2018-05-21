@@ -5,8 +5,8 @@ After=network.target
 [Service]
 Type=simple
 Restart=always
-WorkingDirectory=/home/pi/Desktop/stanicni-hlaseni/
-ExecStart=/usr/bin/env python3 /home/pi/Desktop/stanicni-hlaseni/__main__.py
+WorkingDirectory=$WORKDIR
+ExecStart=/usr/bin/env python3 $WORKDIR/__main__.py
 
 [Install]
 WantedBy=multi-user.target
