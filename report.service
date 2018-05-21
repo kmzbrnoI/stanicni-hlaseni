@@ -1,5 +1,6 @@
 [Unit]
 Description=Station report service
+After=network.target
 
 [Service]
 Type=simple
