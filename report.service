@@ -4,6 +4,7 @@ After=network.target
 
 [Service]
 Type=simple
+Restart=always
 WorkingDirectory=/home/pi/Desktop/stanicni-hlaseni/
 ExecStart=/usr/bin/python3.5 /home/pi/Desktop/stanicni-hlaseni/__main__.py
 
