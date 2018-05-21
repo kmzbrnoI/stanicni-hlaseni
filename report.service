@@ -1,5 +1,5 @@
 [Unit]
-Description=stanicni-hlaseni
+Description=Station report service
 
 [Service]
 Type=simple
