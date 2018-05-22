@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import os
 import wave
 import logging
@@ -9,7 +12,6 @@ import pygame.mixer
 class ReportManager:
     def __init__(self):
         self.config_file_name = 'config.ini'
-        self.report_id = 0
         self.sound_set = ''
         self.parent_sound_set = ''
         self.play_gong = True
@@ -17,12 +19,7 @@ class ReportManager:
         self.train_num = True
         self.time = True
         self.load_sound_config()
-
-    def increment_report_id(self):
-        self.report_id += 1
-
-    def get_report_id(self):
-        return self.report_id
+        
 
     def load_sound_config(self):
         # funkce pro načtení konfiguračního souboru
@@ -35,7 +32,7 @@ class ReportManager:
         self.salutation = (parser.getboolean('sound', 'salutation'))
         self.train_num = (parser.getboolean('sound', 'trainNum'))
         self.time = (parser.getboolean('sound', 'time'))
-
+        
     def print_sound_config(self):
         # funkce pouze pro správné otestování funkčnosti
         logging.debug("Budou vyuzity tyto parametry:")
@@ -70,7 +67,7 @@ class ReportManager:
 
     def all_files_exist(self, sound_sequence):
         # funkce zkontroluje zda existuji vsechny soubory, pokud se soubor nenachazi v aktualni zvukove sade, zkusit sadu rodice
-        # data v sound_sequence jsou ve formatu /numbers/50.wav
+        # data v sound_sequence jsou ve formatu /parts/prijel.ogg
 
         exist = True
         for i, sound in enumerate(sound_sequence):
@@ -82,7 +79,6 @@ class ReportManager:
                     sound_sequence[i] = self.parent_sound_set + "/" + sound
                     logging.debug("Vyuziji soubor z rodicoskeho adresare...")
                 elif (os.path.exists("default/" + sound)):
-                    # tahle cast se nakonec asi nebude potreba
                     sound_sequence[i] = "default/" + sound
                     logging.debug("Vyuziji soubor z defaultniho adresare...")
                 else:
@@ -144,8 +140,6 @@ class ReportManager:
         if len(redefined_sound_sequence) > 0:
             # nejdrive otestuji, zda upraveny seznam obsahuje nejake polozky
             if self.all_files_exist(redefined_sound_sequence):
-                self.increment_report_id()
-                file_name = self.get_report_id()
                 # outfile = str(file_name) + ".ogg"
                 # self.merge_wavs(redefined_sound_sequence, outfile)
                 self.play_report_ram(redefined_sound_sequence)

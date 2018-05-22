@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import logging
 
 import message_parser
@@ -18,6 +21,7 @@ class TrainSet:
         self.final_station = ''
         self.arrival_time = ''
         self.departure_time = ''
+        self.station = ''
         self.load_train_set(message)
 
     def load_train_set(self, message):
@@ -38,6 +42,7 @@ class TrainSet:
         logging.debug("Final station: {0}".format(self.final_station))
         logging.debug("Arrival time: {0}".format(self.arrival_time))
         logging.debug("Departure time: {0}".format(self.departure_time))
+        logging.debug("Station: {0}".format(self.departure_time))
 
 
 def join_path(train_set):
@@ -78,9 +83,6 @@ def process_message(message):
     parsed_message = message_parser.parse(message, ";")
 
     last_item = parsed_message.pop()
-
-    last_item = last_item.replace("\n", "")
-    last_item = last_item.replace("\r", "")
 
     parsed_message.append(last_item)
 
@@ -129,31 +131,27 @@ def prepare_time(train_set, action):
 
 
 def prijede(report, train_set):
-    # číslo;typ;kolej;výchozí stanice;cílová stanice;/čas příjezdu/;/čas odjezdu/
-    # 608522;Os;1;Zd;Oc;9:22;9:25
-
-    # Ku', 'SH', 'ODJEDE', '504220', 'Os', '1', 'Bs', 'Ku'
-
     rm = report_manager.ReportManager()
 
     report.append("parts/ze_smeru.ogg")
 
     report.append(train_set.start_station)
 
-    #train_set.arrival_time = "22:23"
     # pravidelny prijezd 22 hodiny 23 minuty
     if (train_set.arrival_time != '') and rm.time:
         report += prepare_time(train_set, "prijede")
 
-    report.append("parts/vlak_dale_pokracuje_ve_smeru.ogg")
-
-    report.append(train_set.final_station)
-
     report.append("parts/prijede.ogg")
     report.append("parts/na_kolej.ogg")
-
     report.append(train_set.railway)
 
+    if train_set.final_station != train_set.start_station :
+        report.append("parts/vlak_dale_pokracuje_ve_smeru.ogg")
+        report.append(train_set.final_station)
+    else:
+        report.append("parts/vlak_zde_jizdu_konci.ogg")
+        report.append("parts/prosime_cestujici_aby_vystoupili.ogg")
+     
     rm.create_report(report)
 
 
@@ -161,22 +159,15 @@ def odjede(report, train_set):
     rm = report_manager.ReportManager()
 
     report.append("parts/ze_smeru.ogg")
-
-    report.append(train_set.start_station)
-
-    report.append("parts/vlak_dale_pokracuje_ve_smeru.ogg")
-
     report.append(train_set.final_station)
 
-    # pravidelny odjezd 22 hodiny 23 minuty
-    #train_set.departure_time = "22:23"
 
     if (train_set.departure_time != '') and rm.time:
         report += prepare_time(train_set, "odjede")
 
     report.append("parts/odjede.ogg")
     report.append("parts/z_koleje.ogg")
-
+    
     report.append(train_set.railway)
 
     rm.create_report(report)
@@ -185,6 +176,18 @@ def odjede(report, train_set):
 def projede(message):
     print()
 
+def nesahat():
+    rm = report_manager.ReportManager()
+    report = []
+    report.append("spec/nedotykejte_se_prosim_vystavenych_modelu.ogg")
+    rm.create_report(report)
+
+def posun():
+    rm = report_manager.ReportManager()
+    report = []
+    report.append("spec/prosim_pozor.ogg")
+    report.append("spec/probiha_posun.ogg")
+    rm.create_report(report)
 
 def parse_message(message):
     # metoda prochází zadanou zprávu a postupně na ni volá metodu parse()
