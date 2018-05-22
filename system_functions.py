@@ -20,7 +20,7 @@ def list_samba(server_ip, home_folder):
     sound_sets = []
     process = Popen(['./list_samba.sh', server_ip, home_folder], stdout=PIPE, stderr=PIPE)
     output, err = process.communicate()
-    sound_sets = output.decode('utf-8').splitlines()[2:] #. .. Veronika Zbynek
+    sound_sets = output.decode('utf-8').splitlines()[2:] #. .. Veronika, Zbynek, Ivona
     
     return sound_sets
     
@@ -29,16 +29,11 @@ def download_sound_files_samba(server_ip, home_folder, sound_set):
     try:
         logging.info("Aktualizace zvukove sady: {0}".format(sound_set))
         process = Popen(['./download_sound_set.sh', server_ip, home_folder, sound_set], stdout=PIPE, stderr=PIPE)
-
-        # Pro jistotu nastavuji timeout na 60s.
         output, error = process.communicate(timeout=60)
-        
+
         return (process.returncode, output, error)
 
     except subprocess.TimeoutExpired as e:
-        # odchytávám jenom v případě timeout, všechny ostatní chyby jsou uloženy v process
-        
-        # vracet vyjimku
         return (1, "timeout", "timeout")
 
 
@@ -62,10 +57,7 @@ def setup_wifi(wifi_ssid):
         return False
     else :
         return True
-    
-    """
-        TODO: pokusit se upravit, aby se kontroloval exit code scriptu, nastavit timeout. Chyby resit vyjimkou.
-    """    
+  
 class DeviceInfo:
 
     def __init__(self):

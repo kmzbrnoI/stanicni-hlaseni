@@ -51,6 +51,7 @@ def get_ip(name):
                     device = device_info
 
                 if device:
+                    print("Nalezen server: {0}".format(device))
 
                     server = str(device).split(";")
                     server_ip = server[4]
