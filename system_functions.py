@@ -20,10 +20,10 @@ def list_samba(server_ip, home_folder):
     sound_sets = []
     process = Popen(['./list_samba.sh', server_ip, home_folder], stdout=PIPE, stderr=PIPE)
     output, err = process.communicate()
-    sound_sets = output.decode('utf-8').splitlines()[2:] #. .. Veronika, Zbynek, Ivona
-    
+    sound_sets = output.decode('utf-8').splitlines()[2:]  # . .. Veronika, Zbynek, Ivona
+
     return sound_sets
-    
+
 
 def download_sound_files_samba(server_ip, home_folder, sound_set):
     try:
@@ -42,12 +42,11 @@ def get_device_ip():
 
 
 def setup_wifi(wifi_ssid):
-
     proc = Popen(["iwgetid"], stdout=PIPE, stderr=PIPE)
     connected, err = proc.communicate()
     exitcode = proc.returncode
-    
-    if not wifi_ssid in str(connected) :
+
+    if not wifi_ssid in str(connected):
         print("Zapinam  WIFI")
         proc = Popen(["./wifi.sh"], stderr=DEVNULL, stdout=DEVNULL)
         connected, err = proc.communicate()
@@ -55,9 +54,10 @@ def setup_wifi(wifi_ssid):
         time.sleep(15)
         logging.debug("Exit msg: {0}".format(exitcode))
         return False
-    else :
+    else:
         return True
-  
+
+
 class DeviceInfo:
 
     def __init__(self):
@@ -80,6 +80,8 @@ class DeviceInfo:
         self.server_name = (parser[server]['name'])
         area = parser.sections()[2]
         self.area = (parser[area]['name'])
-        logging = parser.sections()[3]
-        self.verbosity = (parser[logging]['verbosity'])
-        self.path = (parser[logging]['path'])
+        logg = parser.sections()[3]
+        self.verbosity = (parser[logg]['verbosity'])
+        self.path = (parser[logg]['path'])
+        sound = parser.sections()[4]
+        self.soundset = (parser[sound]['soundset'])

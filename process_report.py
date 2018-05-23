@@ -4,8 +4,6 @@
 import logging
 
 import message_parser
-import report_manager
-import system_functions
 
 
 class UnknownMessageError(Exception):
@@ -45,12 +43,10 @@ class TrainSet:
         logging.debug("Station: {0}".format(self.departure_time))
 
 
-def join_path(train_set):
-    rm = report_manager.ReportManager()
-
-    if rm.train_num :
+def join_path(rm, train_set):
+    if rm.train_num:
         train_set.train_type = "trainType/" + train_set.train_type + "_cislo.ogg"
-    else :
+    else:
         train_set.train_type = "trainType/" + train_set.train_type + ".ogg"
 
     train_set.railway = "numbers/railway/" + train_set.railway + ".ogg"
@@ -61,7 +57,7 @@ def join_path(train_set):
 
 
 def parse_train_set(message):
-    #naparsuji data a ulozim do TrainSet
+    # naparsuji data a ulozim do TrainSet
     train_set_data = message_parser.parse(message[3], ";")
     train_set = TrainSet(train_set_data)
     train_set.print_info()
@@ -69,8 +65,7 @@ def parse_train_set(message):
     return train_set
 
 
-def prepare_report(train_set):
-    rm = report_manager.ReportManager()
+def prepare_report(rm, train_set):
     report_list = ["salutation/vazeni_cestujici.ogg", "salutation/prosim_pozor.ogg", train_set.train_type]
 
     report_list += rm.parse_train_number(train_set.train_number)
@@ -78,32 +73,33 @@ def prepare_report(train_set):
     return report_list
 
 
-def process_message(message):
-    #ziskanou zpravu nejdrive celou naparsuji
+def process_message(message, rm):
+    # ziskanou zpravu nejdrive celou naparsuji
     parsed_message = message_parser.parse(message, ";")
 
     last_item = parsed_message.pop()
 
     parsed_message.append(last_item)
 
-    #ziskam typ hlaseni
+    # ziskam typ hlaseni
     message_type = parsed_message[2].lower()
 
-    #naparsuji soupravu
+    # naparsuji soupravu
     train_set = parse_train_set(parsed_message)
 
-    #k naparsovanym datum pridam cesty k souborum
-    train_set = join_path(train_set)
+    # k naparsovanym datum pridam cesty k souborum
+    train_set = join_path(rm, train_set)
 
-    #pripravim si spolecnou cast hlaseni
-    report = prepare_report(train_set)
+    # pripravim si spolecnou cast hlaseni
+    report = prepare_report(rm, train_set)
+    train_set.print_info()
 
     if message_type == "prijede":
-        prijede(report, train_set)
+        prijede(report, rm, train_set)
     elif message_type == "odjede":
-        odjede(report, train_set)
+        odjede(report, rm, train_set)
     elif message_type == "projede":
-        projede(message)
+        projede(report, rm, train_set)
     else:
         logging.error("Zprava neni naimplementovana...")
         # raise UnknownMessageTypeError("Neznamy typ zpravy.")
@@ -130,9 +126,8 @@ def prepare_time(train_set, action):
     return report
 
 
-def prijede(report, train_set):
-    rm = report_manager.ReportManager()
-
+def prijede(report, rm, train_set):
+    # naimplementovat ten kurim
     report.append("parts/ze_smeru.ogg")
 
     report.append(train_set.start_station)
@@ -145,49 +140,44 @@ def prijede(report, train_set):
     report.append("parts/na_kolej.ogg")
     report.append(train_set.railway)
 
-    if train_set.final_station != train_set.start_station :
+    if train_set.final_station != rm.area:
         report.append("parts/vlak_dale_pokracuje_ve_smeru.ogg")
         report.append(train_set.final_station)
     else:
         report.append("parts/vlak_zde_jizdu_konci.ogg")
         report.append("parts/prosime_cestujici_aby_vystoupili.ogg")
-     
+
     rm.create_report(report)
 
 
-def odjede(report, train_set):
-    rm = report_manager.ReportManager()
-
+def odjede(report, rm, train_set):
     report.append("parts/ze_smeru.ogg")
     report.append(train_set.final_station)
-
 
     if (train_set.departure_time != '') and rm.time:
         report += prepare_time(train_set, "odjede")
 
     report.append("parts/odjede.ogg")
     report.append("parts/z_koleje.ogg")
-    
+
     report.append(train_set.railway)
 
     rm.create_report(report)
 
 
-def projede(message):
-    print()
+def projede(report, rm, train_set):
+    raise UnknownMessageError(Exception)
 
-def nesahat():
-    rm = report_manager.ReportManager()
-    report = []
-    report.append("spec/nedotykejte_se_prosim_vystavenych_modelu.ogg")
+
+def nesahat(rm):
+    report = ["spec/nedotykejte_se_prosim_vystavenych_modelu.ogg"]
     rm.create_report(report)
 
-def posun():
-    rm = report_manager.ReportManager()
-    report = []
-    report.append("spec/prosim_pozor.ogg")
-    report.append("spec/probiha_posun.ogg")
+
+def posun(rm):
+    report = ["spec/prosim_pozor.ogg", "spec/probiha_posun.ogg"]
     rm.create_report(report)
+
 
 def parse_message(message):
     # metoda prochází zadanou zprávu a postupně na ni volá metodu parse()

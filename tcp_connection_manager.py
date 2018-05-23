@@ -2,11 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import logging
+from os import path
 import socket
 import threading
-import time
-import os
-from datetime import datetime 
 from collections import deque
 
 import message_parser
@@ -29,8 +27,8 @@ class OutdatedVersionError(Exception):
 
 class TCPConnectionManager:
     def __init__(self):
-        self.rm = report_manager.ReportManager()
         self.device_info = system_functions.DeviceInfo()
+        self.rm = report_manager.ReportManager(self.device_info.soundset, self.device_info.area)
         self.server_ip = ""
         self.server_port = ""
         self.connection_established = False
@@ -56,14 +54,15 @@ class TCPConnectionManager:
                         message += socket.recv(2048)
 
                 decoded_message = message.decode('UTF-8')
-                decoded_message = decoded_message.replace("\r", "") #rovnou vyhodit \r 
+                print(decoded_message)
+                decoded_message = decoded_message.replace("\r", "")  # rovnou vyhodit \r
                 message_queue += decoded_message.splitlines(True)
 
                 while message_queue:
-                    
+
                     if message_queue[-1].endswith('\n'):  # vše ok
                         message_to_process = message_queue.popleft()
-                        
+
                         message_to_process = message_to_process.replace("\n", "")
 
                         if "-;HELLO" in message_to_process:
@@ -77,13 +76,13 @@ class TCPConnectionManager:
                         elif "SETS-LIST" in message_to_process:
                             self.sets_list(socket, message_to_process)
                         elif "NESAHAT" in message_to_process:
-                            threading.Thread(target=process_report.nesahat()).start()
+                            threading.Thread(target=process_report.nesahat(self.rm)).start()
                         elif "POSUN" in message_to_process:
-                            threading.Thread(target=process_report.posun()).start()
+                            threading.Thread(target=process_report.posun(self.rm)).start()
                         elif (('SH;PRIJEDE;' in message_to_process) or ("SH;ODJEDE;" in message_to_process) or (
                                 "SH;PROJEDE;" in message_to_process)) and self.connection_established:
                             logging.debug("Zpracovava se: {0}".format(message_to_process))
-                            threading.Thread(target=process_report.process_message(message_to_process)).start()
+                            threading.Thread(target=process_report.process_message(message_to_process, self.rm)).start()
                     else:
                         # vyhodím poslední prvek z bufferu a připojím na začátek nové zprávy
                         message_part = message_queue.popleft()
@@ -92,7 +91,7 @@ class TCPConnectionManager:
             except OSError as e:
                 logging.warning("Connection error: {0}".format(e))
                 break
-            
+
             except Exception as e:
                 logging.warning("Connection error: {0}".format(e))
                 break
@@ -100,13 +99,13 @@ class TCPConnectionManager:
     def send_message(self, socket, message):
         try:
             socket.send(message.encode('UTF-8'))
-            
+
         except TCPCommunicationEstablishedError:
             logging.error("Nepodarilo se odeslat zpravu na serveru...")
-           
+
         except socket.timeout:
             logging.warning("TCP Timeout...")
-           
+
     def process_hello_response(self, socket, message):
 
         hello_message = message_parser.parse(message, ";")
@@ -119,7 +118,7 @@ class TCPConnectionManager:
         logging.debug("Verze hello: {0}".format(version))
 
         if version >= 1:
-            register_message = self.device_info.area + ";SH;REGISTER;"+ self.rm.sound_set +";1.0\n"
+            register_message = self.device_info.area + ";SH;REGISTER;" + self.rm.sound_set + ";1.0\n"
             self.send_message(socket, register_message)
 
         else:
@@ -146,7 +145,7 @@ class TCPConnectionManager:
                 logging.error("Vnitřní chyba serveru, více info na serveru")
 
     def connect(self, ip, port):
-        
+
         try:
             client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             client_socket.settimeout(50)
@@ -156,10 +155,9 @@ class TCPConnectionManager:
 
         except OSError as e:
             logging.warning("Connection error: {0}".format(e))
-                
+
         except Exception as e:
             logging.warning("Connection error: {0}".format(e))
-
 
     def sync(self, socket, message):
 
@@ -167,7 +165,7 @@ class TCPConnectionManager:
         self.send_message(socket, info_message)
 
         sound_set = self.rm.sound_set
-        #aktualizace zvukové sady, podle config.ini
+        # aktualizace zvukové sady, podle config.ini
         return_code, output, error = system_functions.download_sound_files_samba("server-tt", "shZvuky", sound_set)
 
         version = "1.0"
@@ -188,8 +186,8 @@ class TCPConnectionManager:
         sound_sets = system_functions.list_samba("server-tt", "shZvuky")
 
         sounds_set_string = ""
-        sounds_set_string = ",".join(sound_sets )
-            
+        sounds_set_string = ",".join(sound_sets)
+
         info_message = self.device_info.area + ";SH;SETS-LIST;{" + sounds_set_string + "};\n"
         self.send_message(socket, info_message)
 
@@ -197,13 +195,12 @@ class TCPConnectionManager:
         parsed_message = message_parser.parse(message, ";")
         sound_set = parsed_message[3]
 
-        available = os.path.isdir('./' + sound_set)
+        available = path.isdir('./' + sound_set)
 
-        if available :
+        if available:
             self.rm.sound_set = sound_set
             info_message = self.device_info.area + ";SH;CHANGE-SET;OK;\n"
-        else :
+        else:
             info_message = self.device_info.area + ";SH;CHANGE-SET;ERR;SET_NOT_AVAILABLE\n"
 
         self.send_message(socket, info_message)
-

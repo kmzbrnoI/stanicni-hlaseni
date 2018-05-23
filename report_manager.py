@@ -1,30 +1,32 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+import logging
 import os
 import wave
-import logging
 from configparser import ConfigParser
 
 import pygame.mixer
 
 
 class ReportManager:
-    def __init__(self):
+    def __init__(self, sound_set, area):
         self.config_file_name = 'config.ini'
-        self.sound_set = ''
+        self.sound_set = sound_set
         self.parent_sound_set = ''
         self.play_gong = True
         self.salutation = True
         self.train_num = True
         self.time = True
+        self.area = area
         self.load_sound_config()
-        
 
     def load_sound_config(self):
         # funkce pro načtení konfiguračního souboru
         parser = ConfigParser()
-        parser.read(self.config_file_name)
+        file_path = os.path.join(self.sound_set, self.config_file_name)
+
+        parser.read(file_path)
 
         self.sound_set = parser.sections()[0]
         self.parent_sound_set = (parser[self.sound_set]['base'])
@@ -32,7 +34,7 @@ class ReportManager:
         self.salutation = (parser.getboolean('sound', 'salutation'))
         self.train_num = (parser.getboolean('sound', 'trainNum'))
         self.time = (parser.getboolean('sound', 'time'))
-        
+
     def print_sound_config(self):
         # funkce pouze pro správné otestování funkčnosti
         logging.debug("Budou vyuzity tyto parametry:")
@@ -66,12 +68,13 @@ class ReportManager:
         return final_sequence
 
     def all_files_exist(self, sound_sequence):
-        # funkce zkontroluje zda existuji vsechny soubory, pokud se soubor nenachazi v aktualni zvukove sade, zkusit sadu rodice
+        # funkce zkontroluje zda existuji vsechny soubory, pokud se soubor nenachazi v aktualni zvukove sade,
+        # zkusit sadu rodice
         # data v sound_sequence jsou ve formatu /parts/prijel.ogg
 
         exist = True
         for i, sound in enumerate(sound_sequence):
-            if (os.path.exists(self.sound_set + "/" + sound)):
+            if os.path.exists(self.sound_set + "/" + sound):
                 sound_sequence[i] = self.sound_set + "/" + sound
             else:
                 logging.debug('Nenasel jsem soubor v prirazenem adresari: %s' % sound)
@@ -106,11 +109,11 @@ class ReportManager:
         output.close()
 
     def play_report_ram(self, sound_sequence):
-        
+
         pygame.mixer.pre_init(44100, -16, 1, 512)
         pygame.init()
         pygame.mixer.init()
-        
+
         clock = pygame.time.Clock()
         sounds = [pygame.mixer.Sound(f) for f in sound_sequence]
         for s in sounds:
@@ -162,11 +165,11 @@ class ReportManager:
             else:
                 data = character + ('0' * position)  # vytisknu číslo + počet nul
                 sound_set.append(data)
-                
+
         output_list = []
 
         for sound in reversed(sound_set):  # nakonec ještě nahrávky vytisknu v opačném pořadí pro správné seřazení
-            if int(sound) != 0: # přetypuji na integer pokud znak není nula, připojím do seznamu
+            if int(sound) != 0:  # přetypuji na integer pokud znak není nula, připojím do seznamu
                 output_list.append(sound)
 
         return output_list
@@ -211,7 +214,5 @@ class ReportManager:
             second_list = self.assign_number_directory(tmp_list)
 
             first_list += second_list
-            
+
             return first_list
-
-
