@@ -127,10 +127,10 @@ def prepare_time(train_set, action):
 
 
 def prijede(report, rm, train_set):
-    # naimplementovat ten kurim
-    report.append("parts/ze_smeru.ogg")
-
+    """
+    report.append("parts/ze_smeru.ogg") #tady by bylo dobry, aby mi server poslal seznam zastavek
     report.append(train_set.start_station)
+    """
 
     # pravidelny prijezd 22 hodiny 23 minuty
     if (train_set.arrival_time != '') and rm.time:
@@ -140,7 +140,7 @@ def prijede(report, rm, train_set):
     report.append("parts/na_kolej.ogg")
     report.append(train_set.railway)
 
-    if train_set.final_station != rm.area:
+    if (rm.area + ".") not in train_set.final_station:  # v tuto chvili uz mam v promennych ulozene cele cesty proto "."
         report.append("parts/vlak_dale_pokracuje_ve_smeru.ogg")
         report.append(train_set.final_station)
     else:
