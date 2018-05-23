@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
+import os
 
 import message_parser
 
@@ -45,13 +46,13 @@ class TrainSet:
 
 def join_path(rm, train_set):
     if rm.train_num:
-        train_set.train_type = "trainType/" + train_set.train_type + "_cislo.ogg"
+        train_set.train_type = os.path.join("trainType", train_set.train_type + "_cislo.ogg")
     else:
-        train_set.train_type = "trainType/" + train_set.train_type + ".ogg"
+        train_set.train_type = os.path.join("trainType", train_set.train_type + ".ogg")
 
-    train_set.railway = "numbers/railway/" + train_set.railway + ".ogg"
-    train_set.start_station = "stations/" + train_set.start_station + ".ogg"
-    train_set.final_station = "stations/" + train_set.final_station + ".ogg"
+    train_set.railway = os.path.join("numbers", "railway", train_set.railway + ".ogg")
+    train_set.start_station = os.path.join("stations", train_set.start_station + ".ogg")
+    train_set.final_station = os.path.join("stations", train_set.final_station + ".ogg")
 
     return train_set
 
@@ -66,7 +67,8 @@ def parse_train_set(message):
 
 
 def prepare_report(rm, train_set):
-    report_list = ["salutation/vazeni_cestujici.ogg", "salutation/prosim_pozor.ogg", train_set.train_type]
+    report_list = [os.path.join("salutation", "vazeni_cestujici.ogg"), os.path.join("salutation", "prosim_pozor.ogg"),
+                   train_set.train_type]
 
     report_list += rm.parse_train_number(train_set.train_number)
 
@@ -111,15 +113,15 @@ def prepare_time(train_set, action):
     minutes = ''
 
     if action == "prijede":
-        report.append("parts/pravidelny_prijezd.ogg")
+        report.append(os.path.join("parts", "pravidelny_prijezd.ogg"))
         hours, minutes = train_set.arrival_time.split(":")
 
     elif action == "odjede":
-        report.append("parts/pravidelny_odjezd.ogg")
+        report.append(os.path.join("parts", "pravidelny_odjezd.ogg"))
         hours, minutes = train_set.departure_time.split(":")
 
-    hours = "time/hours/" + hours + ".ogg"
-    minutes = "time/minutes/" + minutes + ".ogg"
+    hours = os.path.join("time", "hours") + hours + ".ogg"
+    minutes = os.path.join("time", "minutes") + minutes + ".ogg"
     report.append(hours)
     report.append(minutes)
 
@@ -136,29 +138,29 @@ def prijede(report, rm, train_set):
     if (train_set.arrival_time != '') and rm.time:
         report += prepare_time(train_set, "prijede")
 
-    report.append("parts/prijede.ogg")
-    report.append("parts/na_kolej.ogg")
+    report.append(os.path.join("parts", "prijede.ogg"))
+    report.append(os.path.join("parts", "na_kolej.ogg"))
     report.append(train_set.railway)
 
     if (rm.area + ".") not in train_set.final_station:  # v tuto chvili uz mam v promennych ulozene cele cesty proto "."
-        report.append("parts/vlak_dale_pokracuje_ve_smeru.ogg")
+        report.append(os.path.join("parts", "vlak_dale_pokracuje_ve_smeru.ogg"))
         report.append(train_set.final_station)
     else:
-        report.append("parts/vlak_zde_jizdu_konci.ogg")
-        report.append("parts/prosime_cestujici_aby_vystoupili.ogg")
+        report.append(os.path.join("parts", "vlak_zde_jizdu_konci.ogg"))
+        report.append(os.path.join("parts", "prosime_cestujici_aby_vystoupili.ogg"))
 
     rm.create_report(report)
 
 
 def odjede(report, rm, train_set):
-    report.append("parts/ze_smeru.ogg")
+    report.append(os.path.join("parts", "ze_smeru.ogg"))
     report.append(train_set.final_station)
 
     if (train_set.departure_time != '') and rm.time:
         report += prepare_time(train_set, "odjede")
 
-    report.append("parts/odjede.ogg")
-    report.append("parts/z_koleje.ogg")
+    report.append(os.path.join("parts", "odjede.ogg"))
+    report.append(os.path.join("parts", "z_koleje.ogg"))
 
     report.append(train_set.railway)
 
@@ -170,12 +172,12 @@ def projede(report, rm, train_set):
 
 
 def nesahat(rm):
-    report = ["spec/nedotykejte_se_prosim_vystavenych_modelu.ogg"]
+    report = [os.path.join("spec", "nedotykejte_se_prosim_vystavenych_modelu.ogg")]
     rm.create_report(report)
 
 
 def posun(rm):
-    report = ["spec/prosim_pozor.ogg", "spec/probiha_posun.ogg"]
+    report = [os.path.join("spec", "prosim_pozor.ogg"), os.path.join("spec", "probiha_posun.ogg")]
     rm.create_report(report)
 
 
