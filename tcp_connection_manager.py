@@ -13,7 +13,7 @@ import report_manager
 import system_functions
 
 
-class TCPCommunicationEstablishedError(OSError):
+class TCPCommunicationEstablishedError(Exception):
     pass
 
 
@@ -64,7 +64,7 @@ class TCPConnectionManager:
                         message_to_process = message_queue.popleft()
 
                         message_to_process = message_to_process.replace("\n", "")
-
+                        logging.debug("Ve fronte: {0}".format(message_to_process))
                         if "-;HELLO" in message_to_process:
                             self.process_hello_response(socket, message_to_process)
                         elif "REGISTER-RESPONSE;" in message_to_process:
@@ -76,13 +76,13 @@ class TCPConnectionManager:
                         elif "SETS-LIST" in message_to_process:
                             self.sets_list(socket, message_to_process)
                         elif "NESAHAT" in message_to_process:
-                            threading.Thread(target=process_report.nesahat(self.rm)).start()
+                            process_report.nesahat(self.rm)
                         elif "POSUN" in message_to_process:
-                            threading.Thread(target=process_report.posun(self.rm)).start()
+                            process_report.posun(self.rm)
                         elif (('SH;PRIJEDE;' in message_to_process) or ("SH;ODJEDE;" in message_to_process) or (
                                 "SH;PROJEDE;" in message_to_process)) and self.connection_established:
                             logging.debug("Zpracovava se: {0}".format(message_to_process))
-                            threading.Thread(target=process_report.process_message(message_to_process, self.rm)).start()
+                            process_report.process_message(message_to_process, self.rm)
                     else:
                         # vyhodím poslední prvek z bufferu a připojím na začátek nové zprávy
                         message_part = message_queue.popleft()
@@ -98,13 +98,19 @@ class TCPConnectionManager:
 
     def send_message(self, socket, message):
         try:
-            socket.send(message.encode('UTF-8'))
+            if message is not None:
+                socket.send(message.encode('UTF-8'))
+            else:
+                raise TCPCommunicationEstablishedError
 
         except TCPCommunicationEstablishedError:
             logging.error("Nepodarilo se odeslat zpravu na serveru...")
 
         except socket.timeout:
             logging.warning("TCP Timeout...")
+
+        except Exception:
+            logging.warning("Problem se spojením")
 
     def process_hello_response(self, socket, message):
 
@@ -193,12 +199,14 @@ class TCPConnectionManager:
 
     def change_set(self, socket, message):
         parsed_message = message_parser.parse(message, ";")
-        sound_set = parsed_message[3]
 
+        sound_set = parsed_message[3]
+        print("sound set: ", sound_set)
         available = path.isdir('./' + sound_set)
 
         if available:
             self.rm.sound_set = sound_set
+            self.rm.load_sound_config()
             info_message = self.device_info.area + ";SH;CHANGE-SET;OK;\n"
         else:
             info_message = self.device_info.area + ";SH;CHANGE-SET;ERR;SET_NOT_AVAILABLE\n"

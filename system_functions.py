@@ -48,11 +48,7 @@ def setup_wifi(wifi_ssid):
 
     if not wifi_ssid in str(connected):
         print("Zapinam  WIFI")
-        proc = Popen(["./wifi.sh"], stderr=DEVNULL, stdout=DEVNULL)
-        connected, err = proc.communicate()
-        exitcode = proc.returncode
         time.sleep(15)
-        logging.debug("Exit msg: {0}".format(exitcode))
         return False
     else:
         return True

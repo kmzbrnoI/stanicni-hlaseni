@@ -74,15 +74,15 @@ class ReportManager:
 
         exist = True
         for i, sound in enumerate(sound_sequence):
-            if os.path.exists(os.path.join(self.sound_set , sound)):
+            if os.path.exists(os.path.join(self.sound_set, sound)):
                 sound_sequence[i] = os.path.join(self.sound_set, sound)
             else:
                 logging.debug('Nenasel jsem soubor v prirazenem adresari: %s' % sound)
                 if (os.path.exists(os.path.join(self.parent_sound_set, sound))):
                     sound_sequence[i] = os.path.join(self.parent_sound_set, sound)
                     logging.debug("Vyuziji soubor z rodicoskeho adresare...")
-                elif (os.path.exists(os.path.join("default",sound))):
-                    sound_sequence[i] = os.path.join("default",sound)
+                elif (os.path.exists(os.path.join("default", sound))):
+                    sound_sequence[i] = os.path.join("default", sound)
                     logging.debug("Vyuziji soubor z defaultniho adresare...")
                 else:
                     logging.error("Nenasel jsem pozadovany soubor!")
@@ -175,8 +175,8 @@ class ReportManager:
         return output_list
 
     def assign_number_directory(self, input_list):
-        output_list = [os.path.join("numbers","trainNum", (x + ".ogg")) for x in input_list[:-1]]
-        last_item = os.path.join("numbers","trainNum_end", (input_list[-1] + ".ogg"))
+        output_list = [os.path.join("numbers", "trainNum", (x + ".ogg")) for x in input_list[:-1]]
+        last_item = os.path.join("numbers", "trainNum_end", (input_list[-1] + ".ogg"))
         output_list.append(last_item)
 
         return output_list
