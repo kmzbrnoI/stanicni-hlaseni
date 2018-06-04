@@ -24,13 +24,15 @@ def main():
 
     verbosity = get_logging_level(device_info.verbosity)
     path = os.path.join(device_info.path, 'sh.log')
-    logging.basicConfig(filename=path,level=verbosity)
+    logging.basicConfig(level=verbosity, filename= path)
+
+    """
     
     
     while True:
         if system_functions.setup_wifi(device_info.ssid) :
             break
-     
+    """
     server_ip = ''
     client = tcp_connection_manager.TCPConnectionManager()
     
