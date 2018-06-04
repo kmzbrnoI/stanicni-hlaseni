@@ -4,9 +4,11 @@ import socket
 
 def get_example_message(x):
     return {
-        '1': 'Ku;SH;PRIJEDE;{501520;MOs;1;Br;Bs;;}\n',
+        '1': 'Ku;SH;PRIJEDE;{501520;MOs;1;Br;Ku;;}\n',
         '2': 'Ku;SH;ODJEDE;{504220;Os;1;Bs;Zd;;}\n',
-        '3': 'Ku;SH;SPEC;[NESAHAT]\n'
+        '3': 'Ku;SH;SPEC;[NESAHAT]\n',
+        '4': 'Ku;SH;CHANGE-SET;{Veronika}\n',
+        '5': "PING;\n"
     }.get(x, 'Ku;SH;ODJEDE;{504220;Os;1;Bs;Zd;;}\n')
 
 
