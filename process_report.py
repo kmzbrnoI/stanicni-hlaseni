@@ -120,8 +120,8 @@ def prepare_time(train_set, action):
         report.append(os.path.join("parts", "pravidelny_odjezd.ogg"))
         hours, minutes = train_set.departure_time.split(":")
 
-    hours = os.path.join("time", "hours", (hours + ".ogg"))
-    minutes = os.path.join("time", "minutes", (minutes + ".ogg"))
+    hours = os.path.join("time", "hours", (hours.lstrip("0") + ".ogg"))  # odstraneni levostrannych nul (napr. 09 minut)
+    minutes = os.path.join("time", "minutes", (minutes.lstrip("0") + ".ogg"))
     report.append(hours)
     report.append(minutes)
 
