@@ -3,11 +3,10 @@ Description=Station announcement service
 After=network.target
 
 [Service]
-User=pi
 Type=simple
 Restart=always
 WorkingDirectory=$WORKDIR
-ExecStart=/usr/bin/env python3 $WORKDIR/__main__.py &
+ExecStart=/usr/bin/env python3 $WORKDIR/__main__.py
 
 [Install]
 WantedBy=multi-user.target

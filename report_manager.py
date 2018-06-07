@@ -111,7 +111,6 @@ class ReportManager:
     def play_report_ram(self, sound_sequence):
 
         pygame.mixer.pre_init(44100, -16, 1, 512)
-        pygame.init()
         pygame.mixer.init()
 
         clock = pygame.time.Clock()
