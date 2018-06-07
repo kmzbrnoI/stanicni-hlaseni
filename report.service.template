@@ -3,7 +3,6 @@ Description=Station announcement service
 After=network.target
 
 [Service]
-User=pi
 Type=simple
 Restart=always
 WorkingDirectory=$WORKDIR
