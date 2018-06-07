@@ -167,12 +167,55 @@ class TCPConnectionManager:
 
     def sync(self, socket, message):
 
+        # Vytvorim si docasny report_manager
+        tmp_rm = report_manager.ReportManager(self.device_info.soundset, self.device_info.area)
+        logging.debug("Defaultni sada: {0}".format(self.device_info.soundset))
+
+        # Vylistuji sambu a ziskam dostupne sady
+
+        sound_sets = system_functions.list_samba(self.device_info.smb_server, self.device_info.smb_home_folder)
+        logging.debug("Dostupne sady: {0}".format(sound_sets))
+
+        updated = []
+
+        # Oznamim serveru aktualizaci zvukovych sad
+
         info_message = self.device_info.area + ";SH;SYNC;STARTED;\n"
         self.send_message(socket, info_message)
 
-        sound_set = self.rm.sound_set
-        # aktualizace zvukové sady, podle config.ini
-        return_code, output, error = system_functions.download_sound_files_samba("server-tt", "shZvuky", sound_set)
+        print(tmp_rm.sound_set)
+        while True:
+            if (tmp_rm.sound_set in sound_sets) and (tmp_rm.sound_set not in updated):
+
+                logging.debug("Stahovani zvukove sady: {0}".format(tmp_rm.sound_set))
+
+                # aktualizace zvukové sady, podle config.ini
+                return_code, output, error = system_functions.download_sound_files_samba(
+                    self.device_info.smb_server,
+                    self.device_info.smb_home_folder,
+                    str.strip(tmp_rm.sound_set))
+
+                if str(return_code) == '0':
+                    logging.debug("Zvukova sada: {0} byla uspesne stazena...".format(tmp_rm.sound_set))
+                    updated.append(tmp_rm.sound_set)
+
+                    if tmp_rm.parent_sound_set in updated:
+                        logging.debug("Rodicovska zvukova sada pro {0} je již stažena.({1})".format(tmp_rm.sound_set,
+                                                                                                    tmp_rm.parent_sound_set))
+                        break
+                    else:
+                        tmp_rm = report_manager.ReportManager(tmp_rm.parent_sound_set, self.device_info.area)
+                        tmp_rm.load_sound_config()
+                        logging.debug("Je potřeba získat sadu rodiče ({0})".format(tmp_rm.sound_set))
+
+                else:
+                    # nastala chyba pri aktualizaci zvukove sady
+                    logging.debug("Nastala chyba pri aktualizaci zvukove sady {0}".format(tmp_rm.sound_set))
+                    break
+
+            else:
+                logging.debug("Stahování úspešně dokončeno...")
+                break
 
         version = "1.0"
 
@@ -180,7 +223,11 @@ class TCPConnectionManager:
 
         if return_code == '0':
             logging.info("Aktualizace zvukové sady proběhla úspěšně.")
-            info_message = self.device_info.area + ";SH;SYNC;DONE;" + sound_set + ";" + version + "\n"
+            info_message = self.device_info.area + ";SH;SYNC;DONE;" + tmp_rm.sound_set + ";" + version + "\n"
+        elif return_code == '99':
+            logging.info("Při aktualizaci zvukove sady nastala chyba: na serveru neexistuje zvuková sada {0}".format(
+                tmp_rm.sound_set))
+            info_message = self.device_info.area + ";SH;SYNC;ERR;" + version + ";" + str(error) + "\n"
         else:
             logging.error("Při aktualizace zvukové sady nastala chyba.")
             info_message = self.device_info.area + ";SH;SYNC;ERR;" + version + ";" + str(error) + "\n"
@@ -189,7 +236,7 @@ class TCPConnectionManager:
 
     def sets_list(self, socket, message):
 
-        sound_sets = system_functions.list_samba("server-tt", "shZvuky")
+        sound_sets = system_functions.list_samba(self.device_info.smb_server, self.device_info.smb_home_folder)
 
         sounds_set_string = ""
         sounds_set_string = ",".join(sound_sets)

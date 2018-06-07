@@ -81,3 +81,6 @@ class DeviceInfo:
         self.path = (parser[logg]['path'])
         sound = parser.sections()[4]
         self.soundset = (parser[sound]['soundset'])
+        samba = parser.sections()[5]
+        self.smb_server = (parser[samba]['server'])
+        self.smb_home_folder = (parser[samba]['home_folder'])
