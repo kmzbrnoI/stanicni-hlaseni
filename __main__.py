@@ -15,24 +15,20 @@ def get_logging_level(verbosity):
         'info': logging.INFO,
         'warning': logging.WARNING,
         'error': logging.ERROR,
-        'critical': logging.CRITICAL        
-    }.get(verbosity, logging.DEBUG)  
+        'critical': logging.CRITICAL
+    }.get(verbosity, logging.DEBUG)
 
 def main():
 
     device_info = system_functions.DeviceInfo()
-
     verbosity = get_logging_level(device_info.verbosity)
-    path = os.path.join(device_info.path, 'sh.log')
-    logging.basicConfig(level=verbosity, filename= path)
 
-    """
-    
-    
-    while True:
-        if system_functions.setup_wifi(device_info.ssid) :
-            break
-    """
+    if device_info.path == 'off' :
+        logging.basicConfig(level=verbosity)
+    else:
+        path = os.path.join(device_info.path, 'sh.log')
+        logging.basicConfig(level=verbosity, filename= path)
+
     server_ip = ''
     client = tcp_connection_manager.TCPConnectionManager()
     

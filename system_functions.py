@@ -57,8 +57,6 @@ def setup_wifi(wifi_ssid):
 class DeviceInfo:
 
     def __init__(self):
-        self.ssid = ''
-        self.password = ''
         self.server_name = ''
         self.area = ''
         self.verbosity = ''
@@ -70,17 +68,15 @@ class DeviceInfo:
         parser = ConfigParser()
         parser.read('global_config.ini')
 
-        wifi = parser.sections()[0]
-        self.ssid = (parser[wifi]['ssid'])
-        server = parser.sections()[1]
+        server = parser.sections()[0]
         self.server_name = (parser[server]['name'])
-        area = parser.sections()[2]
+        area = parser.sections()[1]
         self.area = (parser[area]['name'])
-        logg = parser.sections()[3]
+        logg = parser.sections()[2]
         self.verbosity = (parser[logg]['verbosity'])
         self.path = (parser[logg]['path'])
-        sound = parser.sections()[4]
+        sound = parser.sections()[3]
         self.soundset = (parser[sound]['soundset'])
-        samba = parser.sections()[5]
+        samba = parser.sections()[4]
         self.smb_server = (parser[samba]['server'])
         self.smb_home_folder = (parser[samba]['home_folder'])
