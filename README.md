@@ -1,10 +1,19 @@
-# Station announcements
+# Station Announcements
 Station announcements is client-based application. It is based on commands from hJOPserver. It is a simulation of station announcements that you know from the train stations.
 
-## How to use it
+## Before You Start
+
+### Sound Sets ## 
+You need to assign sound files, before you start the program. The sound sets are available [here](https://github.com/kmzbrnoI/shZvuky). 
+shZvuky repository uses git-lfs. To install git-lfs on RPI use **instal_lfs.sh** in stanicni-hlaseni directory.
+
+### WiFi ###
+RPI 3 uses wpa_supplicant. You can use example wpa_supplicant.conf file in stanicni-hlaseni directory. Just change the password and use cp stanicni-hlaseni/wpa_supplicant.conf /etc/wpa_supplicant/wpa_supplicant.conf to rewrite the default file.
+
+## How to Use It
 There is almost no need to control the program. There are just two configuration files in which you can change the application behavior. 
 
-**config.ini** is used for change the style of announcements. You can set either yes or no to attributes in announcement to be pronounced.
+**config.ini** is used for change the style of announcements. You can set either yes or no to attributes in announcement to be pronounced. It's located in each sound set directory.
 
 ```
 [Veronika] -- Main sound set
@@ -18,8 +27,6 @@ time=no
 
 **global_config.ini** is used for basic configuration of device. (e.g. attribute [server] describes the name of server, which will application try to establish the communication)
 ```
-[wifi] 
-ssid=stanicni-hlaseni -- if the device is not connected to this Wi-Fi, it will try to reconnect
 [server] 
 name=server H0
 [area]
@@ -39,6 +46,10 @@ To uninstall a service, run `make uninstall`.
 
 *Note*: `make install` and `make uninstall` require access to *systemd* files
 (will usually require superuser to run this command).
+
+## Read-only FS
+This application was tested to run in RO mode with Raspbian Stretch Lite. Probably the easiest way to make the Raspbian run in read-only mode is to use this [script](https://github.com/ways/rpi-readonly).
+
 
 ## Contributors
 Developed by Petr Repa as bachelor thesis.
