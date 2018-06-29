@@ -48,6 +48,8 @@ def get_ip(name):
 
                 device_info, ip = message
 
+                logging.debug("Na UDP odpovedel server: {0}".format(device_info))
+
                 if name in str(device_info):
                     device = device_info
 
@@ -64,9 +66,9 @@ def get_ip(name):
                         break
 
         except socket.timeout:
-            print("Nedosla odpoved na UDP (timeout)")
+            logging.error("Nedosla odpoved na UDP (timeout)")
 
         except ServerNotFoundError(Exception):
-            print("Server nenalezen...")
+            logging.error("Server nenalezen...")
 
     raise ServerNotFoundError("Server nenalezen...")
