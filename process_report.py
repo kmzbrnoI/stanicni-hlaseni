@@ -67,8 +67,7 @@ def parse_train_set(message):
 
 
 def prepare_report(rm, train_set):
-    report_list = [os.path.join("salutation", "vazeni_cestujici.ogg"), os.path.join("salutation", "prosim_pozor.ogg"),
-                   train_set.train_type]
+    report_list = [os.path.join("salutation", "prosim_pozor.ogg"), train_set.train_type]
 
     report_list += rm.parse_train_number(train_set.train_number)
 

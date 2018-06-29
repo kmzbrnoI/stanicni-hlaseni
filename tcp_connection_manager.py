@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import logging
-from os import path
+import os
 import socket
 import threading
 from collections import deque
@@ -58,6 +58,7 @@ class TCPConnectionManager:
                 decoded_message = decoded_message.replace("\r", "")  # rovnou vyhodit \r
                 message_queue += decoded_message.splitlines(True)
 
+                gong_played = False
                 while message_queue:
 
                     if message_queue[-1].endswith('\n'):  # vše ok
@@ -65,6 +66,7 @@ class TCPConnectionManager:
 
                         message_to_process = message_to_process.replace("\n", "")
                         logging.debug("Ve fronte: {0}".format(message_to_process))
+                        
                         if "-;HELLO" in message_to_process:
                             self.process_hello_response(socket, message_to_process)
                         elif "REGISTER-RESPONSE;" in message_to_process:
@@ -81,12 +83,20 @@ class TCPConnectionManager:
                             process_report.posun(self.rm)
                         elif (('SH;PRIJEDE;' in message_to_process) or ("SH;ODJEDE;" in message_to_process) or (
                                 "SH;PROJEDE;" in message_to_process)) and self.connection_established:
+
+                            if not gong_played:
+                                self.rm.create_report([os.path.join("gong", "gong_start.ogg"), os.path.join("salutation", "vazeni_cestujici.ogg")])
+                                gong_played = True
+                        
                             logging.debug("Zpracovava se: {0}".format(message_to_process))
                             process_report.process_message(message_to_process, self.rm)
                     else:
-                        # vyhodím poslední prvek z bufferu a připojím na začátek nové zprávy
+                        # vyhodím poslední prvek z fronty a připojím na začátek nové zprávy
                         message_part = message_queue.popleft()
                         break
+
+                if gong_played:
+                    self.rm.create_report([os.path.join("gong", "gong_end.ogg")])
 
             except OSError as e:
                 logging.warning("Connection error: {0}".format(e))
