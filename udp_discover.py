@@ -1,5 +1,6 @@
 import socket
 import logging
+import time
 
 import system_functions
 
@@ -67,6 +68,10 @@ def get_ip(name):
 
         except socket.timeout:
             logging.error("Nedosla odpoved na UDP (timeout)")
+
+        except IOError as e:
+            logging.error("Nedosla odpoved na UDP (timeout) {0}".format(e))
+            time.sleep(30)
 
         except ServerNotFoundError(Exception):
             logging.error("Server nenalezen...")

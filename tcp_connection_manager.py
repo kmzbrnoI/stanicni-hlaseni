@@ -5,6 +5,7 @@ import logging
 import os
 import socket
 import threading
+import time
 from collections import deque
 
 import message_parser
@@ -28,7 +29,7 @@ class OutdatedVersionError(Exception):
 class TCPConnectionManager:
     def __init__(self):
         self.device_info = system_functions.DeviceInfo()
-        self.rm = report_manager.ReportManager(self.device_info.soundset, self.device_info.area)
+        self.rm = report_manager.ReportManager(self.device_info.soundset, self.device_info.soundset_path, self.device_info.area)
         self.server_ip = ""
         self.server_port = ""
         self.connection_established = False
@@ -54,7 +55,7 @@ class TCPConnectionManager:
                         message += socket.recv(2048)
 
                 decoded_message = message.decode('UTF-8')
-                print(decoded_message)
+                logging.debug("Prijata zprava: {0}".format(decoded_message))
                 decoded_message = decoded_message.replace("\r", "")  # rovnou vyhodit \r
                 message_queue += decoded_message.splitlines(True)
 
@@ -116,8 +117,9 @@ class TCPConnectionManager:
         except TCPCommunicationEstablishedError:
             logging.error("Nepodarilo se odeslat zpravu na serveru...")
 
-        except socket.timeout:
-            logging.warning("TCP Timeout...")
+        except (TypeError, AttributeError):
+            logging.critical("Nepodarilo se odeslat zpravu.. Chyba wifi")
+            time.sleep(60)
 
         except Exception:
             logging.warning("Problem se spojením")

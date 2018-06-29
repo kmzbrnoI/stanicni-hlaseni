@@ -3,11 +3,13 @@
 import logging
 import os
 import socket
+import sys
 import time
 
 import tcp_connection_manager
 import system_functions
 import udp_discover
+
 
 def get_logging_level(verbosity):
     return {
@@ -18,20 +20,20 @@ def get_logging_level(verbosity):
         'critical': logging.CRITICAL
     }.get(verbosity, logging.DEBUG)
 
-def main():
 
+def main():
     device_info = system_functions.DeviceInfo()
     verbosity = get_logging_level(device_info.verbosity)
 
-    if device_info.path == 'off' :
+    if device_info.path == '':
         logging.basicConfig(level=verbosity)
     else:
         path = os.path.join(device_info.path, 'sh.log')
-        logging.basicConfig(level=verbosity, filename= path)
+        logging.basicConfig(level=verbosity, filename=path)
 
     server_ip = ''
     client = tcp_connection_manager.TCPConnectionManager()
-    
+
     while True:
 
         try:

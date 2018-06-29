@@ -10,7 +10,7 @@ import pygame.mixer
 
 
 class ReportManager:
-    def __init__(self, sound_set, area):
+    def __init__(self, sound_set, sound_set_path, area):
         self.config_file_name = 'config.ini'
         self.sound_set = sound_set
         self.parent_sound_set = ''
@@ -19,12 +19,14 @@ class ReportManager:
         self.train_num = True
         self.time = True
         self.area = area
+        self.sound_set_path = os.path.join(sound_set_path, 'shZvuky')
+        logging.debug("Zvukova sada nactena z: ".format(self.sound_set_path))
         self.load_sound_config()
 
     def load_sound_config(self):
         # funkce pro načtení konfiguračního souboru
         parser = ConfigParser()
-        file_path = os.path.join(self.sound_set, self.config_file_name)
+        file_path = os.path.join(self.sound_set_path, self.sound_set, self.config_file_name)
 
         parser.read(file_path)
 
@@ -74,15 +76,15 @@ class ReportManager:
 
         exist = True
         for i, sound in enumerate(sound_sequence):
-            if os.path.exists(os.path.join(self.sound_set, sound)):
-                sound_sequence[i] = os.path.join(self.sound_set, sound)
+            if os.path.exists(os.path.join(self.sound_set_path, self.sound_set, sound)):
+                sound_sequence[i] = os.path.join(self.sound_set_path, self.sound_set, sound)
             else:
                 logging.debug('Nenasel jsem soubor v prirazenem adresari: %s' % sound)
-                if (os.path.exists(os.path.join(self.parent_sound_set, sound))):
-                    sound_sequence[i] = os.path.join(self.parent_sound_set, sound)
+                if (os.path.exists(os.path.join(self.sound_set_path, self.parent_sound_set, sound))):
+                    sound_sequence[i] = os.path.join(self.sound_set_path, self.parent_sound_set, sound)
                     logging.debug("Vyuziji soubor z rodicoskeho adresare...")
-                elif (os.path.exists(os.path.join("default", sound))):
-                    sound_sequence[i] = os.path.join("default", sound)
+                elif (os.path.exists(os.path.join(self.sound_set_path, "default", sound))):
+                    sound_sequence[i] = os.path.join(self.sound_set_path, "default", sound)
                     logging.debug("Vyuziji soubor z defaultniho adresare...")
                 else:
                     logging.error("Nenasel jsem pozadovany soubor!")
