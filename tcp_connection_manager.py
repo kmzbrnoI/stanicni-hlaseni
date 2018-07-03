@@ -4,9 +4,9 @@
 import logging
 import os
 import socket
-import threading
 import time
 from collections import deque
+from os import path
 
 import message_parser
 import process_report
@@ -29,18 +29,19 @@ class OutdatedVersionError(Exception):
 class TCPConnectionManager:
     def __init__(self):
         self.device_info = system_functions.DeviceInfo()
-        self.rm = report_manager.ReportManager(self.device_info.soundset, self.device_info.soundset_path, self.device_info.area)
+        self.rm = report_manager.ReportManager(self.device_info.soundset, self.device_info.soundset_path,
+                                               self.device_info.area)
         self.server_ip = ""
         self.server_port = ""
         self.connection_established = False
 
-    def listen(self, socket):
+    def listen(self, client_socket):
         message_part = ""
         message_queue = deque()
 
         while True:
             try:
-                message = socket.recv(2048)
+                message = client_socket.recv(2048)
 
                 if message_part:
                     # předchozí zpráva došla po částech
@@ -52,7 +53,7 @@ class TCPConnectionManager:
                     if '\n' in message.decode('UTF-8'):
                         break
                     else:
-                        message += socket.recv(2048)
+                        message += client_socket.recv(2048)
 
                 decoded_message = message.decode('UTF-8')
                 logging.debug("Prijata zprava: {0}".format(decoded_message))
@@ -67,17 +68,17 @@ class TCPConnectionManager:
 
                         message_to_process = message_to_process.replace("\n", "")
                         logging.debug("Ve fronte: {0}".format(message_to_process))
-                        
+
                         if "-;HELLO" in message_to_process:
-                            self.process_hello_response(socket, message_to_process)
+                            self.process_hello_response(client_socket, message_to_process)
                         elif "REGISTER-RESPONSE;" in message_to_process:
-                            self.process_register_response(socket, message_to_process)
+                            self.process_register_response(message_to_process)
                         elif "SYNC" in message_to_process:
-                            self.sync(socket, message_to_process)
+                            self.sync(client_socket, message_to_process)
                         elif "CHANGE-SET" in message_to_process:
-                            self.change_set(socket, message_to_process)
+                            self.change_set(client_socket, message_to_process)
                         elif "SETS-LIST" in message_to_process:
-                            self.sets_list(socket, message_to_process)
+                            self.sets_list(client_socket)
                         elif "NESAHAT" in message_to_process:
                             process_report.nesahat(self.rm)
                         elif "POSUN" in message_to_process:
@@ -86,9 +87,10 @@ class TCPConnectionManager:
                                 "SH;PROJEDE;" in message_to_process)) and self.connection_established:
 
                             if not gong_played:
-                                self.rm.create_report([os.path.join("gong", "gong_start.ogg"), os.path.join("salutation", "vazeni_cestujici.ogg")])
+                                self.rm.create_report([os.path.join("gong", "gong_start.ogg"),
+                                                       os.path.join("salutation", "vazeni_cestujici.ogg")])
                                 gong_played = True
-                        
+
                             logging.debug("Zpracovava se: {0}".format(message_to_process))
                             process_report.process_message(message_to_process, self.rm)
                     else:
@@ -107,10 +109,11 @@ class TCPConnectionManager:
                 logging.warning("Connection error: {0}".format(e))
                 break
 
-    def send_message(self, socket, message):
+    @staticmethod
+    def send_message(client_socket, message):
         try:
             if message is not None:
-                socket.send(message.encode('UTF-8'))
+                client_socket.send(message.encode('UTF-8'))
             else:
                 raise TCPCommunicationEstablishedError
 
@@ -124,7 +127,7 @@ class TCPConnectionManager:
         except Exception:
             logging.warning("Problem se spojením")
 
-    def process_hello_response(self, socket, message):
+    def process_hello_response(self, client_socket, message):
 
         hello_message = message_parser.parse(message, ";")
         version = hello_message[-1]
@@ -137,12 +140,12 @@ class TCPConnectionManager:
 
         if version >= 1:
             register_message = self.device_info.area + ";SH;REGISTER;" + self.rm.sound_set + ";1.0\n"
-            self.send_message(socket, register_message)
+            self.send_message(client_socket, register_message)
 
         else:
             raise OutdatedVersionError("Je potreba aktualizovat verzi..")
 
-    def process_register_response(self, socket, message):
+    def process_register_response(self, message):
         register_response = message_parser.parse(message, ";")
 
         state = register_response[3]
@@ -162,7 +165,8 @@ class TCPConnectionManager:
             elif error_note == 'INTERNAL_ERROR':
                 logging.error("Vnitřní chyba serveru, více info na serveru")
 
-    def connect(self, ip, port):
+    @staticmethod
+    def connect(ip, port):
 
         try:
             client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -177,7 +181,7 @@ class TCPConnectionManager:
         except Exception as e:
             logging.warning("Connection error: {0}".format(e))
 
-    def sync(self, socket, message):
+    def sync(self, client_socket, message):
 
         # Vytvorim si docasny report_manager
         tmp_rm = report_manager.ReportManager(self.device_info.soundset, self.device_info.area)
@@ -193,7 +197,7 @@ class TCPConnectionManager:
         # Oznamim serveru aktualizaci zvukovych sad
 
         info_message = self.device_info.area + ";SH;SYNC;STARTED;\n"
-        self.send_message(socket, info_message)
+        self.send_message(client_socket, info_message)
 
         print(tmp_rm.sound_set)
         while True:
@@ -244,19 +248,18 @@ class TCPConnectionManager:
             logging.error("Při aktualizace zvukové sady nastala chyba.")
             info_message = self.device_info.area + ";SH;SYNC;ERR;" + version + ";" + str(error) + "\n"
 
-        self.send_message(socket, info_message)
+        self.send_message(client_socket, info_message)
 
-    def sets_list(self, socket, message):
+    def sets_list(self, client_socket):
 
         sound_sets = system_functions.list_samba(self.device_info.smb_server, self.device_info.smb_home_folder)
 
-        sounds_set_string = ""
         sounds_set_string = ",".join(sound_sets)
 
         info_message = self.device_info.area + ";SH;SETS-LIST;{" + sounds_set_string + "};\n"
-        self.send_message(socket, info_message)
+        self.send_message(client_socket, info_message)
 
-    def change_set(self, socket, message):
+    def change_set(self, client_socket, message):
         parsed_message = message_parser.parse(message, ";")
 
         sound_set = parsed_message[3]
@@ -270,4 +273,4 @@ class TCPConnectionManager:
         else:
             info_message = self.device_info.area + ";SH;CHANGE-SET;ERR;SET_NOT_AVAILABLE\n"
 
-        self.send_message(socket, info_message)
+        self.send_message(client_socket, info_message)

@@ -1,23 +1,11 @@
 import logging
-import os
 import socket
 import subprocess
-import time
 from configparser import ConfigParser
-from subprocess import Popen, PIPE, DEVNULL
-
-
-def play_sound(file_name):
-    os.system('aplay ' + str(file_name))
-
-
-def download_sound_files_github():
-    clone = "git clone https://github.com/kmzbrnoI/shZvuky"
-    os.system(clone)
+from subprocess import Popen, PIPE
 
 
 def list_samba(server_ip, home_folder):
-    sound_sets = []
     process = Popen(['./list_samba.sh', server_ip, home_folder], stdout=PIPE, stderr=PIPE)
     output, err = process.communicate()
     sound_sets = output.decode('utf-8').splitlines()[2:]  # . .. Veronika, Zbynek, Ivona
@@ -31,27 +19,14 @@ def download_sound_files_samba(server_ip, home_folder, sound_set):
         process = Popen(['./download_sound_set.sh', server_ip, home_folder, sound_set], stdout=PIPE, stderr=PIPE)
         output, error = process.communicate(timeout=60)
 
-        return (process.returncode, output, error)
+        return process.returncode, output, error
 
-    except subprocess.TimeoutExpired as e:
-        return (1, "timeout", "timeout")
+    except subprocess.TimeoutExpired:
+        return 1, "timeout", "timeout"
 
 
 def get_device_ip():
     return socket.gethostbyname(socket.gethostname())
-
-
-def setup_wifi(wifi_ssid):
-    proc = Popen(["iwgetid"], stdout=PIPE, stderr=PIPE)
-    connected, err = proc.communicate()
-    exitcode = proc.returncode
-
-    if not wifi_ssid in str(connected):
-        print("Zapinam  WIFI")
-        time.sleep(15)
-        return False
-    else:
-        return True
 
 
 class DeviceInfo:

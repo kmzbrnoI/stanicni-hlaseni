@@ -3,7 +3,6 @@
 
 import logging
 import os
-import wave
 from configparser import ConfigParser
 
 import pygame.mixer
@@ -26,7 +25,10 @@ class ReportManager:
     def load_sound_config(self):
         # funkce pro načtení konfiguračního souboru
         parser = ConfigParser()
-        file_path = os.path.join(self.sound_set_path, self.sound_set, self.config_file_name)
+        file_path = os.path.join(
+            self.sound_set_path,
+            self.sound_set,
+            self.config_file_name)
 
         parser.read(file_path)
 
@@ -41,14 +43,17 @@ class ReportManager:
         # funkce pouze pro správné otestování funkčnosti
         logging.debug("Budou vyuzity tyto parametry:")
         logging.debug("Zvukova sada: ".format(self.sound_set))
-        logging.debug("Rodicovska zvukova sada: ".format(self.parent_sound_set))
+        logging.debug("Rodicovska z. sada: ".format(self.parent_sound_set))
         logging.debug("Gong: ".format(self.play_gong))
         logging.debug("Osloveni: ".format(self.salutation))
         logging.debug("Cislo vlaku: ".format(self.train_num))
         logging.debug("Cas: ".format(self.time))
 
     def define_sound_sequence(self, sound_sequnce):
-        # funkce na úpravu pole pro generování finálního zvuku, podle parametru konfiguračního souboru
+        """
+        Funkce na úpravu pole pro generování finálního zvuku.
+        (dle parametru konfiguračního souboru)
+        """
         elements_to_remove = []
 
         for i, sound in enumerate(sound_sequnce):
@@ -80,10 +85,10 @@ class ReportManager:
                 sound_sequence[i] = os.path.join(self.sound_set_path, self.sound_set, sound)
             else:
                 logging.debug('Nenasel jsem soubor v prirazenem adresari: %s' % sound)
-                if (os.path.exists(os.path.join(self.sound_set_path, self.parent_sound_set, sound))):
+                if os.path.exists(os.path.join(self.sound_set_path, self.parent_sound_set, sound)):
                     sound_sequence[i] = os.path.join(self.sound_set_path, self.parent_sound_set, sound)
                     logging.debug("Vyuziji soubor z rodicoskeho adresare...")
-                elif (os.path.exists(os.path.join(self.sound_set_path, "default", sound))):
+                elif os.path.exists(os.path.join(self.sound_set_path, "default", sound)):
                     sound_sequence[i] = os.path.join(self.sound_set_path, "default", sound)
                     logging.debug("Vyuziji soubor z defaultniho adresare...")
                 else:
@@ -92,25 +97,8 @@ class ReportManager:
 
         return exist
 
-    def merge_wavs(self, sound_sequence, file_name):
-        # poskladam zvuky podle potrebne posloupnosti
-        data = []
-
-        for sound in sound_sequence:
-            w = wave.open(sound, 'rb')
-            data.append([w.getparams(), w.readframes(w.getnframes())])
-            w.close()
-
-        output = wave.open(file_name, 'wb')
-        output.setparams(data[0][0])
-
-        # postpojuji vysledne zvuky
-        for sound in range(len(data)):
-            output.writeframes(data[sound][1])
-
-        output.close()
-
-    def play_report_ram(self, sound_sequence):
+    @staticmethod
+    def play_report(sound_sequence):
 
         pygame.mixer.pre_init(44100, -16, 1, 512)
         pygame.mixer.init()
@@ -123,19 +111,6 @@ class ReportManager:
             while channel.get_busy():
                 clock.tick(10)
 
-    def play_report_stream(self, sound_sequence):
-
-        pygame.mixer.pre_init(44100, -16, 1, 512)
-        pygame.init()
-        clock = pygame.time.Clock()
-        while len(sound_sequence) > 0:
-
-            pygame.mixer.music.load(sound_sequence.pop(0))
-            pygame.mixer.music.play()
-
-            while pygame.mixer.music.get_busy():
-                clock.tick(1000)
-
     def create_report(self,
                       sound_sequence):
 
@@ -144,22 +119,21 @@ class ReportManager:
         if len(redefined_sound_sequence) > 0:
             # nejdrive otestuji, zda upraveny seznam obsahuje nejake polozky
             if self.all_files_exist(redefined_sound_sequence):
-                # outfile = str(file_name) + ".ogg"
-                # self.merge_wavs(redefined_sound_sequence, outfile)
-                self.play_report_ram(redefined_sound_sequence)
+                self.play_report(redefined_sound_sequence)
 
             else:
                 logging.error('Nastala chyba se ctenim souboru...')
         else:
             logging.error("Seznam pro hlaseni neobsahuje zadne polozky!")
 
-    def find_audio_number(self, number):
+    @staticmethod
+    def find_audio_number(number):
         sound_set = []
 
         for position, character in enumerate(reversed(number)):  # jdu od jednotek, abych synchronizoval pozici a číslo
 
             # pouze pro pro hodnoty 10, 11, 12...
-            if ((position == 1) and (character == "1")):
+            if (position == 1) and (character == "1"):
                 first_char = sound_set[0]
                 sound_set[0] = '1' + first_char
 
@@ -175,7 +149,8 @@ class ReportManager:
 
         return output_list
 
-    def assign_number_directory(self, input_list):
+    @staticmethod
+    def assign_number_directory(input_list):
         output_list = [os.path.join("numbers", "trainNum", (x + ".ogg")) for x in input_list[:-1]]
         last_item = os.path.join("numbers", "trainNum_end", (input_list[-1] + ".ogg"))
         output_list.append(last_item)
@@ -203,7 +178,7 @@ class ReportManager:
             tmp_list = self.find_audio_number(train_number)
             output_list = self.assign_number_directory(tmp_list)
 
-            return (output_list)
+            return output_list
 
         if train_number_len == 5:
             first_part, second_part = train_number[:2], train_number[2:]

@@ -1,5 +1,5 @@
-import socket
 import logging
+import socket
 import time
 
 import system_functions
@@ -14,7 +14,6 @@ class UDPTimeoutError(socket.timeout):
 
 
 def udp_broadcast(port, data):
-    broadcast_count = 0
     brd_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     brd_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     brd_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -37,7 +36,6 @@ def get_ip(name):
         s.bind(('', port))
         s.settimeout(5)
 
-        message = ""
         device = ""
 
         logging.debug("Pocet pokusu pro UDP: {0}".format(_ + 1))
@@ -62,7 +60,7 @@ def get_ip(name):
                     server_port = server[5]
                     is_on = server[6]
                     if "on" in is_on:
-                        return (server_ip, server_port)
+                        return server_ip, server_port
                     else:
                         break
 

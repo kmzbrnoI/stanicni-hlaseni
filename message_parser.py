@@ -16,7 +16,7 @@ def parse(data, separators):
 
         elif (active == '}') and (escaped_level > 0):
             escaped_level -= 1
-            if (escaped_level > 0):
+            if escaped_level > 0:
                 item += active
         else:
 
@@ -30,7 +30,7 @@ def parse(data, separators):
                 if (active not in separators) or (escaped_level > 0):
                     item += active
 
-    if (item != ""):
+    if item != "":
         output.append(item)
 
     return output

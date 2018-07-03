@@ -24,15 +24,13 @@ def tcp_listener():
     serversocket.bind((host, port))
     serversocket.listen(1)
 
-    print("Nasloucham na portu: ", port);
+    print("Nasloucham na portu: ", port)
 
     clientsocket, addr = serversocket.accept()
     print("Navazano spojeni {0}".format(addr))
-    hello_msg = "-;HELLO;1.0\n"
 
     while True:
         message = clientsocket.recv(1024)
-        decoded_message = message.decode("UTF-8")
         print("message: ", message)
 
         if "HELLO" in str(message):
@@ -50,22 +48,21 @@ def tcp_listener():
 
     while True:
         try:
-            message = ""
             print("Zadejte typ zpravy, ktery se odesle.\n1 : PRIJEDE\n2 : ODJEDE\n3 : NESAHAT ")
-            type = input()
-            message = get_example_message(type)
+            message_type = input()
+            message = get_example_message(message_type)
             print("zprava: ", message)
-            
+
             clientsocket.send(message.encode('UTF-8'))
             if message == "ukoncit":
                 print("Spojeni bylo ukonceno prikazem...")
                 break
         except (KeyboardInterrupt, EOFError):
-            clientsocket.send(("ukoncit").encode('UTF-8'))
+            clientsocket.send("ukoncit".encode('UTF-8'))
             break
 
         except (KeyboardInterrupt, EOFError):
-            clientsocket.send(("ukoncit").encode('UTF-8'))
+            clientsocket.send("ukoncit".encode('UTF-8'))
             break
 
     clientsocket.close()

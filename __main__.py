@@ -2,12 +2,10 @@
 
 import logging
 import os
-import socket
-import sys
 import time
 
-import tcp_connection_manager
 import system_functions
+import tcp_connection_manager
 import udp_discover
 
 
