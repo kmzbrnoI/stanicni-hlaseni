@@ -1,15 +1,15 @@
-#!/usr/bin/python3 
+#!/usr/bin/python3
 import socket
 
 
 def get_example_message(x):
     return {
-        '1': 'Ku;SH;PRIJEDE;{501520;MOs;1;Br;Ku;;}\n',
-        '2': 'Ku;SH;ODJEDE;{504220;Os;1;Bs;Zd;;}\n',
-        '3': 'Ku;SH;SPEC;[NESAHAT]\n',
-        '4': 'Ku;SH;CHANGE-SET;{Veronika}\n',
+        '1': 'Ku;SH;PRIJEDE;{501520;MOs;2;Br;Ku;;}',
+        '2': 'Ku;SH;ODJEDE;{504220;Os;2;Bs;Zd;;}',
+        '3': 'Ku;SH;SPEC;[NESAHAT]',
+        '4': 'Ku;SH;CHANGE-SET;{Veronika}',
         '5': "PING;\n"
-    }.get(x, 'Ku;SH;ODJEDE;{504220;Os;1;Bs;Zd;;}\n')
+    }.get(x, input()) + '\n'
 
 
 def tcp_listener():
@@ -29,26 +29,24 @@ def tcp_listener():
     clientsocket, addr = serversocket.accept()
     print("Navazano spojeni {0}".format(addr))
 
-    while True:
-        message = clientsocket.recv(1024)
-        print("message: ", message)
+    registered = False
+    while not registered:
+        message = clientsocket.recv(1024).decode('utf-8')
+        print("Received:", message)
 
-        if "HELLO" in str(message):
+        if "HELLO" in message:
             hello_msg = "-;HELLO;1.0\n"
             clientsocket.send(hello_msg.encode('UTF-8'))
 
-        elif "SH;REGISTER" in message.decode('UTF-8'):
+        elif "SH;REGISTER" in message:
             register_msg = area + ";SH;REGISTER-RESPONSE;OK;\n"
             clientsocket.send(register_msg.encode('UTF-8'))
-            break
-
-        else:
-            ping_msg = "PING;\n"
-            clientsocket.send(ping_msg.encode('UTF-8'))
+            registered = True
 
     while True:
         try:
-            print("Zadejte typ zpravy, ktery se odesle.\n1 : PRIJEDE\n2 : ODJEDE\n3 : NESAHAT ")
+            print("Zadejte typ zpravy k odeslani:\n"
+                  "0: VLASTNI ZPRAVA\n1 : PRIJEDE\n2 : ODJEDE\n3 : NESAHAT")
             message_type = input()
             message = get_example_message(message_type)
             print("zprava: ", message)
