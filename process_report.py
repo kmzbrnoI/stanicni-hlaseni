@@ -44,13 +44,23 @@ class TrainSet:
         logging.debug("Station: {0}".format(self.departure_time))
 
 
-def join_path(rm, train_set):
+def join_path(rm, train_set, action):
+    
+    
     if rm.train_num:
         train_set.train_type = os.path.join("trainType", train_set.train_type + "_cislo.ogg")
     else:
         train_set.train_type = os.path.join("trainType", train_set.train_type + ".ogg")
 
-    train_set.railway = os.path.join("numbers", "railway", train_set.railway + ".ogg")
+    
+    if action == 'prijede' :
+        train_set.railway = os.path.join("numbers", "arrive_railway", train_set.railway + ".ogg")
+    elif action == 'odjede' :
+        train_set.railway = os.path.join("numbers", "leave_railway", train_set.railway + ".ogg")
+    else :
+        train_set.railway = os.path.join("numbers", "railway", train_set.railway + ".ogg")
+    
+
     train_set.start_station = os.path.join("stations", train_set.start_station + ".ogg")
     train_set.final_station = os.path.join("stations", train_set.final_station + ".ogg")
 
@@ -89,7 +99,7 @@ def process_message(message, rm):
     train_set = parse_train_set(parsed_message)
 
     # k naparsovanym datum pridam cesty k souborum
-    train_set = join_path(rm, train_set)
+    train_set = join_path(rm, train_set, message_type)
 
     # pripravim si spolecnou cast hlaseni
     report = prepare_report(rm, train_set)
@@ -152,7 +162,7 @@ def prijede(report, rm, train_set):
 
 
 def odjede(report, rm, train_set):
-    report.append(os.path.join("parts", "ze_smeru.ogg"))
+    report.append(os.path.join("parts", "ve_smeru.ogg"))
     report.append(train_set.final_station)
 
     if (train_set.departure_time != '') and rm.time:
