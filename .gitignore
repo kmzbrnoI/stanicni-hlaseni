@@ -7,9 +7,7 @@ __pycache__/
 .python-version
 
 # Soundsets
-Ivona/
-Veronika/
-Zbynek/
+shZvuky
 
 # Environments
 .env
