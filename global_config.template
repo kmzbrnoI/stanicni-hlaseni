@@ -3,11 +3,11 @@ name=server H0
 [area]
 name=Ku
 [logging]
-verbosity=debug
+verbosity=info
 path=
 [sound]
+soundset_path=shZvuky
 soundset=Zbynek
-soundset_path=/home/pi/sh_last/
 [samba]
 server=
 home_folder=
