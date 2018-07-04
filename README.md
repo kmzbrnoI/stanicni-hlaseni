@@ -69,6 +69,11 @@ time=no
 This application was developed by Petr Repa as a bachelor thesis at Mendel
 University in Brno.
 
+## Licence
+
+This project in available under
+[Apache License v2.0](https://www.apache.org/licenses/LICENSE-2.0).
+
 ## Testing
 
 If you'd like to test the app and you don't have an access to hJOPserver, you
