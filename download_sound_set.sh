@@ -1,4 +1,4 @@
-#!/bin/bash  
+#!/bin/bash
 
 server_ip=$1
 home_folder=$2
