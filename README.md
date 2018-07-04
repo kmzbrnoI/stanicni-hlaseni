@@ -1,4 +1,4 @@
-# Station Announcements
+# Station Announcement
 
 Station announcements is client-based application. It is based on commands from
 hJOPserver. It is a simulation of station announcements that you know from the
