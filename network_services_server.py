@@ -3,13 +3,16 @@ import socket
 
 
 def get_example_message(x):
+    if x == 0:
+        return input() + '\n'
+
     return {
-        '1': 'Ku;SH;PRIJEDE;{501520;MOs;2;Br;Ku;;}',
-        '2': 'Ku;SH;ODJEDE;{504220;Os;2;Bs;Zd;;}',
-        '3': 'Ku;SH;SPEC;[NESAHAT]',
-        '4': 'Ku;SH;CHANGE-SET;{Veronika}',
-        '5': "PING;\n"
-    }.get(x, input()) + '\n'
+        1: 'Ku;SH;PRIJEDE;{501520;MOs;2;Br;Ku;;}',
+        2: 'Ku;SH;ODJEDE;{504220;Os;2;Bs;Zd;;}',
+        3: 'Ku;SH;SPEC;[NESAHAT]',
+        4: 'Ku;SH;CHANGE-SET;{Veronika}',
+        5: "PING;"
+    }.get(x) + '\n'
 
 
 def tcp_listener():
@@ -31,7 +34,7 @@ def tcp_listener():
 
     registered = False
     while not registered:
-        message = clientsocket.recv(1024).decode('utf-8')
+        message = clientsocket.recv(1024).decode('utf-8').strip()
         print("Received:", message)
 
         if "HELLO" in message:
@@ -46,10 +49,10 @@ def tcp_listener():
     while True:
         try:
             print("Zadejte typ zpravy k odeslani:\n"
-                  "0: VLASTNI ZPRAVA\n1 : PRIJEDE\n2 : ODJEDE\n3 : NESAHAT")
+                  "0 : VLASTNI ZPRAVA\n1 : PRIJEDE\n2 : ODJEDE\n3 : NESAHAT")
             message_type = input()
-            message = get_example_message(message_type)
-            print("zprava: ", message)
+            message = get_example_message(int(message_type))
+            print("Sending:", message)
 
             clientsocket.send(message.encode('UTF-8'))
             if message == "ukoncit":
