@@ -18,7 +18,7 @@ class ReportManager:
         self.train_num = True
         self.time = True
         self.area = area
-        self.sound_set_path = os.path.join(sound_set_path, 'shZvuky')
+        self.sound_set_path = sound_set_path
         logging.debug("Zvukova sada nactena z: ".format(self.sound_set_path))
         self.load_sound_config()
 
