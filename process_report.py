@@ -45,21 +45,19 @@ class TrainSet:
 
 
 def join_path(rm, train_set, action):
-    
-    
     if rm.train_num:
         train_set.train_type = os.path.join("trainType", train_set.train_type + "_cislo.ogg")
     else:
         train_set.train_type = os.path.join("trainType", train_set.train_type + ".ogg")
 
-    
+
     if action == 'prijede' :
         train_set.railway = os.path.join("numbers", "arrive_railway", train_set.railway + ".ogg")
     elif action == 'odjede' :
         train_set.railway = os.path.join("numbers", "leave_railway", train_set.railway + ".ogg")
     else :
         train_set.railway = os.path.join("numbers", "railway", train_set.railway + ".ogg")
-    
+
 
     train_set.start_station = os.path.join("stations", train_set.start_station + ".ogg")
     train_set.final_station = os.path.join("stations", train_set.final_station + ".ogg")
@@ -68,7 +66,7 @@ def join_path(rm, train_set, action):
 
 
 def parse_train_set(message):
-    # naparsuji data a ulozim do TrainSet
+    """naparsuji data a ulozim do TrainSet"""
     train_set_data = message_parser.parse(message[3], ";")
     train_set = TrainSet(train_set_data)
     train_set.print_info()
@@ -138,11 +136,6 @@ def prepare_time(train_set, action):
 
 
 def prijede(report, rm, train_set):
-    """
-    report.append("parts/ze_smeru.ogg") #tady by bylo dobry, aby mi server poslal seznam zastavek
-    report.append(train_set.start_station)
-    """
-
     # pravidelny prijezd 22 hodiny 23 minuty
     if (train_set.arrival_time != '') and rm.time:
         report += prepare_time(train_set, "prijede")

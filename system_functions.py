@@ -5,6 +5,9 @@ from configparser import ConfigParser
 from subprocess import Popen, PIPE
 
 
+GLOBAL_CONFIG_FILENAME = 'global_config.ini'
+
+
 def list_samba(server_ip, home_folder):
     process = Popen(['./list_samba.sh', server_ip, home_folder], stdout=PIPE, stderr=PIPE)
     output, err = process.communicate()
@@ -45,7 +48,7 @@ class DeviceInfo:
     def read_device_config(self):
         # funkce pro načtení konfiguračního souboru
         parser = ConfigParser()
-        parser.read('global_config.ini')
+        parser.read(GLOBAL_CONFIG_FILENAME)
 
         server = parser.sections()[0]
         self.server_name = (parser[server]['name'])

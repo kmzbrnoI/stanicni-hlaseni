@@ -8,9 +8,12 @@ from configparser import ConfigParser
 import pygame.mixer
 
 
+DEFAULT_CONFIG_FILENAME = 'config.ini'
+
+
 class ReportManager:
     def __init__(self, sound_set, sound_set_path, area):
-        self.config_file_name = 'config.ini'
+        self.config_file_name = DEFAULT_CONFIG_FILENAME
         self.sound_set = sound_set
         self.parent_sound_set = ''
         self.play_gong = True

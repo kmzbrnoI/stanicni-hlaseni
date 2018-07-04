@@ -5,6 +5,9 @@ import time
 import system_functions
 
 
+DISCOVER_PORT = 5880
+
+
 class ServerNotFoundError(Exception):
     pass
 
@@ -20,20 +23,24 @@ def udp_broadcast(port, data):
 
     data_to_send = data.encode()
     brd_socket.sendto(data_to_send, ('<broadcast>', port))
-    brd_socket.sendto(data_to_send, ('<broadcast>', 5889))  # pouze pro emulaci serveru
 
 
 def get_ip(name):
-    port = 5880
-    # Metoda slouží pro odeslání informací o zařízení (RPI) na server a získání odpovědi skrze broadcast od serveru.
+    """
+    Metoda slouží pro odeslání informací o zařízení (RPI) na server a získání
+    odpovědi skrze broadcast od serveru.
+    """
 
     for _ in range(3):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-        udp_broadcast(port, "hJOP;1.0;sh;;" + system_functions.get_device_ip() + ";;;\n")
+        udp_broadcast(
+            DISCOVER_PORT,
+            "hJOP;1.0;sh;;" + system_functions.get_device_ip() + ";;;\n"
+        )
 
-        s.bind(('', port))
+        s.bind(('', DISCOVER_PORT))
         s.settimeout(5)
 
         device = ""
@@ -44,7 +51,6 @@ def get_ip(name):
             message = s.recvfrom(4096)
 
             if message:
-
                 device_info, ip = message
 
                 logging.debug("Na UDP odpovedel server: {0}".format(device_info))
