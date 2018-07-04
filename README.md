@@ -2,7 +2,9 @@
 
 Station announcements is client-based application. It is based on commands from
 hJOPserver. It is a simulation of station announcements that you know from the
-train stations.
+train stations. This project mainly aims on Raspberry Pi 3 with speaker and
+WiFi located in every station playing the sound. Thus, once the application is
+installed, it requires no further control from SSH.
 
 ## Installation
 
