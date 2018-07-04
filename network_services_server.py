@@ -21,10 +21,10 @@ def tcp_listener():
     host = socket.gethostbyname(socket.gethostname())
 
     port = 5896
-    serversocket.bind((host, port))
+    serversocket.bind(('0.0.0.0', port))
     serversocket.listen(1)
 
-    print("Nasloucham na portu: ", port)
+    print("Nasloucham na portu:", port)
 
     clientsocket, addr = serversocket.accept()
     print("Navazano spojeni {0}".format(addr))
@@ -70,14 +70,13 @@ def tcp_listener():
 
 def udp_listener():
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    sock.bind(('', 5889))
+    sock.bind(('', 5880))
 
     while True:
         data, addr = sock.recvfrom(4096)
-        print("UDP_listener {0}".format(data))
-        connected = "hJOP;1.0;panel;"
-        if connected in str(data):
-            break
+        print("UDP_listener: {0}".format(data.decode('utf-8').strip()))
+        if "hJOP;1.0;sh;" in str(data):
+            return
 
 
 def udp_broadcast(data):
@@ -85,13 +84,16 @@ def udp_broadcast(data):
     brd_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     brd_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-    while True:
-        data_to_send = data.encode()
-        brd_socket.sendto(data_to_send, ('<broadcast>', 5880))
-        break
+    data_to_send = data.encode('utf-8')
+    brd_socket.sendto(data_to_send, ('<broadcast>', 5880))
 
+def get_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(("8.8.8.8", 80))
+    ip = s.getsockname()[0]
+    s.close()
+    return ip
 
 udp_listener()
-current_ip = socket.gethostbyname(socket.gethostname())
-udp_broadcast("hJOP;1.0;server;server H0;" + current_ip + ";5896;on;hJOPEmulator")
+udp_broadcast("hJOP;1.0;server;server H0;" + get_ip() + ";5896;on;hJOPEmulator")
 tcp_listener()
