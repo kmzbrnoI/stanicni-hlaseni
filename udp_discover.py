@@ -31,7 +31,7 @@ def get_ip(name):
         s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-        udp_broadcast(port, "hJOP;1.0;panel;;" + system_functions.get_device_ip() + ";;;\n")
+        udp_broadcast(port, "hJOP;1.0;sh;;" + system_functions.get_device_ip() + ";;;\n")
 
         s.bind(('', port))
         s.settimeout(5)
