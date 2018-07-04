@@ -19,7 +19,5 @@ env.bak/
 venv.bak/
 
 # Project files
-__main__.py
-wpa_supplicant.conf
 sh.log
 global_config.ini
