@@ -1,61 +1,74 @@
 # Station Announcements
-Station announcements is client-based application. It is based on commands from hJOPserver. It is a simulation of station announcements that you know from the train stations.
 
-## Before You Start
+Station announcements is client-based application. It is based on commands from
+hJOPserver. It is a simulation of station announcements that you know from the
+train stations.
 
-### Sound Sets ## 
-You need to assign sound files, before you start the program. The sound sets are available [here](https://github.com/kmzbrnoI/shZvuky). 
-shZvuky repository uses git-lfs. To install git-lfs on RPI use **instal_lfs.sh** in stanicni-hlaseni directory.
+## Installation
 
-### WiFi ###
-RPI 3 uses wpa_supplicant. You can use example wpa_supplicant.conf file in stanicni-hlaseni directory. Just change the password and use cp stanicni-hlaseni/wpa_supplicant.conf /etc/wpa_supplicant/wpa_supplicant.conf to rewrite the default file.
+ 1. Clone this repository.
+ 2. Install packages from `requirements.txt`.
+ 3. Run `make all`. This will create `global_config.ini` file.
+ 4. Edit `global_config.ini` according to your railway.
+ 5. Optional: run `make install` to install station announcement as a systemd
+    service.
+ 6. Clone sound sets into `shZvuky` folder (transfer raw files or clone
+    via git-lfs, see `install_lfs.sh`).
+ 7. Optional: configure WiFi (see `wpa_supplicant.conf`).
+ 8. Optional: make system read-only via
+    [this script](https://github.com/ways/rpi-readonly).
 
-## How to Use It
-There is almost no need to control the program. There are just two configuration files in which you can change the application behavior. 
+To uninstall a systemd service, run `make uninstall`.
 
-**config.ini** is used for change the style of announcements. You can set either yes or no to attributes in announcement to be pronounced. It's located in each sound set directory.
+*Note*: `make install` and `make uninstall` require access to *systemd* files
+(will usually require superuser to run this command).
+
+## Configuration
+
+There is almost no need to control the program. There is just `global_config.ini`
+file which you may adjust according to your railway layout. It is designed to
+be configured only once during installation. To further edits are required.
+
+**global_config.ini** is used for basic configuration of device. (e.g.
+attribute `[server]` describes the name of server, which application will try to
+establish the communication with).
 
 ```
-[Veronika] -- Main sound set
-base=Ivona -- Parent sound set, if some file from main sound set is missing, it is completed with the one from the base sound set.
-[sound] -- used for remove the parts from announcement.
+[server]
+name=server H0
+[area]
+name=Ku
+[logging]
+verbosity=debug  # (debug, info, error, critical)
+path=  # path to log file, logs to stdout if empty
+```
+
+## Soundset configuration
+
+Each sound set contains `config.ini` file:
+
+**config.ini** is used for changing the style of announcements. You can set
+either `yes` or `no` to attributes in announcement to be pronounced.
+
+```
+[Veronika]  # Name of the sound set, must match directory name
+base=Ivona  # Parent sound set, if some files from main sound set are missing,
+            # it is completed with the one from the base sound set.
+            # This rule applies recursively.
+[sound]
 gong=yes
 salutation=no
 trainNum=yes
 time=no
 ```
 
-**global_config.ini** is used for basic configuration of device. (e.g. attribute [server] describes the name of server, which will application try to establish the communication)
-```
-[server] 
-name=server H0
-[area]
-name=Ku
-[logging]
-verbosity=debug -- the level of logging
-path= -- it will log to file in stanicni-hlaseni directory
-```
-
-## Installation
-
-To install the station announcements as a *systemd* service, simple run
-`make install`. Service will be run in current directory, so do not remove
-repository!
-
-To uninstall a service, run `make uninstall`.
-
-*Note*: `make install` and `make uninstall` require access to *systemd* files
-(will usually require superuser to run this command).
-
-## Read-only FS
-This application was tested to run in RO mode with Raspbian Stretch Lite. Probably the easiest way to make the Raspbian run in read-only mode is to use this [script](https://github.com/ways/rpi-readonly).
-
-
 ## Contributors
-Developed by Petr Repa as bachelor thesis.
 
-## Development
-This application is developed especially for Raspberry Pi 3 with Raspbian OS.
+This application was developed by Petr Repa as a bachelor thesis at Mendel
+University in Brno.
 
 ## Testing
-If you'd like to test the app and you don't have an access to hJOPserver, you can try to run NetworkServiceClient.py which works as hJOPserver emulator. Just run it using Python 3.* in second window of terminal.
+
+If you'd like to test the app and you don't have an access to hJOPserver, you
+can try to run `network_services_server.py` which works as hJOPserver emulator.
+Just run it using Python 3.* in second window of terminal.
