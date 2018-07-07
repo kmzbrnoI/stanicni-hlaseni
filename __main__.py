@@ -27,30 +27,19 @@ def main():
         filename=device_info.path if device_info.path else None
     )
 
-    server_ip = ''
     client = tcp_connection_manager.TCPConnectionManager()
 
     while True:
-
         try:
-
-            while not server_ip:
-                server_ip, server_port = udp_discover.get_ip(device_info.server_name)
-
-            logging.debug("Server nalezen: {0}:{1}".format(server_ip, server_port))
+            server = udp_discover.find_server(device_info.server_name)
+            logging.debug("Server found: {0}:{1}".format(server.ip, server_port))
 
             for _ in range(5):
                 logging.debug("TCP pokus {0}".format((_ + 1)))
-
-                client_socket = client.connect(server_ip, int(server_port))
-
+                client_socket = client.connect(server.ip, int(server_port))
                 hello_message = "-;HELLO;1.0\n"
-
                 client.send_message(client_socket, hello_message)
-
                 client.listen(client_socket)
-
-            server_ip = ''
 
         except tcp_connection_manager.TCPCommunicationEstablishedError:
             logging.error("TCPCommunicationEstablishedError!")
@@ -59,12 +48,8 @@ def main():
             logging.warning("TCP Timeout!")
 
         except udp_discover.ServerNotFoundError:
-            time.sleep(30)
+            time.sleep(10)
             logging.error("Server not found!")
-
-        except udp_discover.UDPTimeoutError:
-            logging.error("UDP Timeout!")
-            time.sleep(5)
 
         except tcp_connection_manager.OutdatedVersionError:
             logging.critical("Outdated version of server!")

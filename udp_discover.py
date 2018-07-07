@@ -1,83 +1,103 @@
+#!/usr/bin/env python3
+
 import logging
 import socket
 import time
+import sys
 
 import system_functions
 
 
 DISCOVER_PORT = 5880
+NO_TRY = 3
 
 
 class ServerNotFoundError(Exception):
     pass
 
 
-class UDPTimeoutError(socket.timeout):
+class InvalidProtocolError(Exception):
     pass
 
 
-def udp_broadcast(port, data):
-    brd_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    brd_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-    brd_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-
-    data_to_send = data.encode()
-    brd_socket.sendto(data_to_send, ('<broadcast>', port))
+class InvalidVersionError(Exception):
+    pass
 
 
-def get_ip(name):
+class ServerInfo:
+    """This class holds info about server discovered via UDP discover."""
+
+    def __init__(self, udp_str):
+        splitted = udp_str.split(';')
+
+        if splitted[0] != 'hJOP':
+            raise InvalidProtocolError()
+
+        if splitted[1].split('.')[0] != '1':
+            raise InvalidVersionError()
+
+        self.type = splitted[2]
+        self.name = splitted[3]
+        self.ip = splitted[4]
+        self.port = int(splitted[5]) if splitted[5] else 0
+        self.status = splitted[6]
+        self.on = (self.status == 'on')
+        self.description = splitted[7]
+
+    def __str__(self):
+        return (self.name + ' ' + self.description + ' ' + self.ip + ' ' +
+                str(self.port))
+
+    __repr__ = __str__
+
+
+def find_server(name: str) -> ServerInfo:
     """
-    Metoda slouží pro odeslání informací o zařízení (RPI) na server a získání
-    odpovědi skrze broadcast od serveru.
+    Finds server with name 'name', returns instance of ServerInfo or
+    ServerNotFoundError when server was not found.
     """
 
-    for _ in range(3):
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    s.bind(('', DISCOVER_PORT))
+    s.settimeout(5)
 
-        udp_broadcast(
-            DISCOVER_PORT,
-            "hJOP;1.0;sh;;" + system_functions.get_device_ip() + ";;;\n"
+    for i in range(NO_TRY):
+        s.sendto(
+            ("hJOP;1.0;sh;;" + system_functions.get_device_ip() + ";;;\n")
+            .encode('utf-8'),
+            ('<broadcast>', DISCOVER_PORT)
         )
 
-        s.bind(('', DISCOVER_PORT))
-        s.settimeout(5)
-
-        device = ""
-
-        logging.debug("UDP count: {0}".format(_ + 1))
-
         try:
-            message = s.recvfrom(4096)
+            while True:
+                message, (ip, port) = s.recvfrom(4096)
+                messages = message.decode('utf-8').strip().split('\n')
+                for m in messages:
+                    logging.info('> ' + m)
 
-            if message:
-                device_info, ip = message
+                    try:
+                        server = ServerInfo(m)
+                    except Exception as e:
+                        logging.error(str(e))
+                        continue
 
-                logging.debug("UDP response: {0}".format(device_info))
-
-                if name in str(device_info):
-                    device = device_info
-
-                if device:
-                    logging.debug("Found server {0}".format(device))
-
-                    server = str(device).split(";")
-                    server_ip = server[4]
-                    server_port = server[5]
-                    is_on = server[6]
-                    if "on" in is_on:
-                        return server_ip, server_port
-                    else:
-                        break
+                    if server.type == 'server':
+                        if server.description == name and server.on:
+                            return server
 
         except socket.timeout:
-            logging.error("UDP timeout!")
-
-        except IOError as e:
-            logging.error("UDP timeout: {0}!".format(e))
-            time.sleep(30)
-
-        except ServerNotFoundError(Exception):
-            logging.error("Server not found!")
+            raise ServerNotFoundError("Server not found!")
 
     raise ServerNotFoundError("Server not found!")
+
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+
+    if len(sys.argv) < 2:
+        sys.stderr.write("Usage: ./udp_discover.py server_name\n")
+        sys.exit(1)
+
+    print("Server found:", find_server(sys.argv[1]))
