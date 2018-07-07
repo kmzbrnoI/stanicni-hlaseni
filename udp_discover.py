@@ -45,7 +45,7 @@ def get_ip(name):
 
         device = ""
 
-        logging.debug("Pocet pokusu pro UDP: {0}".format(_ + 1))
+        logging.debug("UDP count: {0}".format(_ + 1))
 
         try:
             message = s.recvfrom(4096)
