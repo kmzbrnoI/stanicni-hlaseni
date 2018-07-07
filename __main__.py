@@ -21,13 +21,11 @@ def get_logging_level(verbosity):
 
 def main():
     device_info = system_functions.DeviceInfo()
-    verbosity = get_logging_level(device_info.verbosity)
 
-    if device_info.path == '':
-        logging.basicConfig(level=verbosity)
-    else:
-        path = os.path.join(device_info.path, 'sh.log')
-        logging.basicConfig(level=verbosity, filename=path)
+    logging.basicConfig(
+        level=get_logging_level(device_info.verbosity),
+        filename=device_info.path if device_info.path else None
+    )
 
     server_ip = ''
     client = tcp_connection_manager.TCPConnectionManager()
