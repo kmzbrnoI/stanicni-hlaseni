@@ -11,6 +11,14 @@ import pygame.mixer
 DEFAULT_CONFIG_FILENAME = 'config.ini'
 
 
+class ConfigFileNotFoundError(Exception):
+    pass
+
+
+class ConfigFileBadFormatError(Exception):
+    pass
+
+
 class ReportManager:
     def __init__(self, sound_set, sound_set_path, area):
         self.config_file_name = DEFAULT_CONFIG_FILENAME
@@ -33,14 +41,22 @@ class ReportManager:
             self.sound_set,
             self.config_file_name)
 
+        if not os.path.isfile(file_path):
+            raise ConfigFileNotFoundError("Config file not found: "
+                                          "{0}!".format(file_path))
+
         parser.read(file_path)
 
-        self.sound_set = parser.sections()[0]
-        self.parent_sound_set = (parser[self.sound_set]['base'])
-        self.play_gong = (parser.getboolean("sound", "gong"))
-        self.salutation = (parser.getboolean('sound', 'salutation'))
-        self.train_num = (parser.getboolean('sound', 'trainNum'))
-        self.time = (parser.getboolean('sound', 'time'))
+        try:
+            self.sound_set = parser.sections()[0]
+            self.parent_sound_set = (parser[self.sound_set]['base'])
+            self.play_gong = parser.getboolean("sound", "gong")
+            self.salutation = parser.getboolean('sound', 'salutation')
+            self.train_num = parser.getboolean('sound', 'trainNum')
+            self.time = parser.getboolean('sound', 'time')
+        except Exception as e:
+            raise ConfigFileBadFormatError("Bad format of config file:"
+                                           "{0}!".format(str(e)))
 
     def print_sound_config(self):
         # funkce pouze pro správné otestování funkčnosti
