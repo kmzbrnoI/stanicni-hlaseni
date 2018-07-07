@@ -1,11 +1,20 @@
 import logging
 import socket
 import subprocess
+import os
 from configparser import ConfigParser
 from subprocess import Popen, PIPE
 
 
 GLOBAL_CONFIG_FILENAME = 'global_config.ini'
+
+
+class ConfigFileNotFoundError(Exception):
+    pass
+
+
+class ConfigFileBadFormatError(Exception):
+    pass
 
 
 def list_samba(server_ip, home_folder):
@@ -35,31 +44,23 @@ def get_device_ip():
 class DeviceInfo:
 
     def __init__(self):
-        self.server_name = ''
-        self.area = ''
-        self.verbosity = ''
-        self.path = ''
-        self.soundset = ''
-        self.soundset_path = ''
-        self.smb_server = ''
-        self.smb_home_folder = ''
-        self.read_device_config()
+        """Reads device info from configuration file."""
+        if not os.path.isfile(GLOBAL_CONFIG_FILENAME):
+            raise ConfigFileNotFoundError("Config file not found: "
+                                          "{0}!".format(GLOBAL_CONFIG_FILENAME))
 
-    def read_device_config(self):
-        # funkce pro načtení konfiguračního souboru
         parser = ConfigParser()
         parser.read(GLOBAL_CONFIG_FILENAME)
 
-        server = parser.sections()[0]
-        self.server_name = (parser[server]['name'])
-        area = parser.sections()[1]
-        self.area = (parser[area]['name'])
-        logg = parser.sections()[2]
-        self.verbosity = (parser[logg]['verbosity'])
-        self.path = (parser[logg]['path'])
-        sound = parser.sections()[3]
-        self.soundset = (parser[sound]['soundset'])
-        self.soundset_path = (parser[sound]['soundset_path'])
-        samba = parser.sections()[4]
-        self.smb_server = (parser[samba]['server'])
-        self.smb_home_folder = (parser[samba]['home_folder'])
+        try:
+            self.server_name = parser['server']['name']
+            self.area = parser['area']['name']
+            self.verbosity = parser['logging']['verbosity']
+            self.path = parser['logging']['path']
+            self.soundset = (parser['sound']['soundset'])
+            self.soundset_path = (parser['sound']['soundset_path'])
+            self.smb_server = (parser['samba']['server'])
+            self.smb_home_folder = (parser['samba']['home_folder'])
+        except Exception as e:
+            raise ConfigFileBadFormatError("Bad format of config file:"
+                                           "{0}!".format(str(e)))
