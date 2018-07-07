@@ -22,7 +22,7 @@ class ReportManager:
         self.time = True
         self.area = area
         self.sound_set_path = sound_set_path
-        logging.debug("Zvukova sada nactena z: ".format(self.sound_set_path))
+        logging.debug("Soundset loaded from ".format(self.sound_set_path))
         self.load_sound_config()
 
     def load_sound_config(self):
@@ -44,13 +44,12 @@ class ReportManager:
 
     def print_sound_config(self):
         # funkce pouze pro správné otestování funkčnosti
-        logging.debug("Budou vyuzity tyto parametry:")
-        logging.debug("Zvukova sada: ".format(self.sound_set))
-        logging.debug("Rodicovska z. sada: ".format(self.parent_sound_set))
+        logging.debug("Sound set: ".format(self.sound_set))
+        logging.debug("Parent sound set: ".format(self.parent_sound_set))
         logging.debug("Gong: ".format(self.play_gong))
-        logging.debug("Osloveni: ".format(self.salutation))
-        logging.debug("Cislo vlaku: ".format(self.train_num))
-        logging.debug("Cas: ".format(self.time))
+        logging.debug("Salutation: ".format(self.salutation))
+        logging.debug("Train number: ".format(self.train_num))
+        logging.debug("Time: ".format(self.time))
 
     def define_sound_sequence(self, sound_sequnce):
         """
@@ -87,15 +86,15 @@ class ReportManager:
             if os.path.exists(os.path.join(self.sound_set_path, self.sound_set, sound)):
                 sound_sequence[i] = os.path.join(self.sound_set_path, self.sound_set, sound)
             else:
-                logging.debug('Nenasel jsem soubor v prirazenem adresari: %s' % sound)
+                logging.debug('File not found in %s' % sound)
                 if os.path.exists(os.path.join(self.sound_set_path, self.parent_sound_set, sound)):
                     sound_sequence[i] = os.path.join(self.sound_set_path, self.parent_sound_set, sound)
-                    logging.debug("Vyuziji soubor z rodicoskeho adresare...")
+                    logging.debug("Using file from parent sound set.")
                 elif os.path.exists(os.path.join(self.sound_set_path, "default", sound)):
                     sound_sequence[i] = os.path.join(self.sound_set_path, "default", sound)
-                    logging.debug("Vyuziji soubor z defaultniho adresare...")
+                    logging.debug("Using sound from default soundset.")
                 else:
-                    logging.error("Nenasel jsem pozadovany soubor!")
+                    logging.error("File not found!")
                     exist = False
 
         return exist
@@ -125,9 +124,9 @@ class ReportManager:
                 self.play_report(redefined_sound_sequence)
 
             else:
-                logging.error('Nastala chyba se ctenim souboru...')
+                logging.error('File read error!')
         else:
-            logging.error("Seznam pro hlaseni neobsahuje zadne polozky!")
+            logging.error("Announcement list is empty!")
 
     @staticmethod
     def find_audio_number(number):

@@ -55,21 +55,21 @@ def main():
             server_ip = ''
 
         except tcp_connection_manager.TCPCommunicationEstablishedError:
-            logging.error("Nepovedlo se navazani komunikace pres TCP")
+            logging.error("TCPCommunicationEstablishedError!")
 
         except tcp_connection_manager.TCPTimeoutError:
-            logging.warning("TCP Timeout.")
+            logging.warning("TCP Timeout!")
 
         except udp_discover.ServerNotFoundError:
             time.sleep(30)
-            logging.error("Server nenalezen.")
+            logging.error("Server not found!")
 
         except udp_discover.UDPTimeoutError:
-            logging.error("UDP Timeout.")
+            logging.error("UDP Timeout!")
             time.sleep(5)
 
         except tcp_connection_manager.OutdatedVersionError:
-            logging.critical("Zastarala verze na serveru.")
+            logging.critical("Outdated version of server!")
             break
 
 

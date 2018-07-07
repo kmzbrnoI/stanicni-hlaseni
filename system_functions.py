@@ -18,7 +18,7 @@ def list_samba(server_ip, home_folder):
 
 def download_sound_files_samba(server_ip, home_folder, sound_set):
     try:
-        logging.info("Aktualizace zvukove sady: {0}".format(sound_set))
+        logging.info("Downloading {0}...".format(sound_set))
         process = Popen(['./download_sound_set.sh', server_ip, home_folder, sound_set], stdout=PIPE, stderr=PIPE)
         output, error = process.communicate(timeout=60)
 

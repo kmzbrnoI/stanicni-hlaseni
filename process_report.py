@@ -110,7 +110,7 @@ def process_message(message, rm):
     elif message_type == "projede":
         projede(report, rm, train_set)
     else:
-        logging.error("Zprava neni naimplementovana...")
+        logging.error("This type of announcement is not supported!")
         # raise UnknownMessageTypeError("Neznamy typ zpravy.")
 
 

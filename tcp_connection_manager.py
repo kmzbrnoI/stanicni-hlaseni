@@ -56,7 +56,7 @@ class TCPConnectionManager:
                         message += client_socket.recv(2048)
 
                 decoded_message = message.decode('UTF-8')
-                logging.debug("Prijata zprava: {0}".format(decoded_message))
+                logging.debug("Received: {0}".format(decoded_message))
                 decoded_message = decoded_message.replace("\r", "")  # rovnou vyhodit \r
                 message_queue += decoded_message.splitlines(True)
 
@@ -67,7 +67,7 @@ class TCPConnectionManager:
                         message_to_process = message_queue.popleft()
 
                         message_to_process = message_to_process.replace("\n", "")
-                        logging.debug("Ve fronte: {0}".format(message_to_process))
+                        logging.debug("Buffer: {0}".format(message_to_process))
 
                         if "-;HELLO" in message_to_process:
                             self.process_hello_response(client_socket, message_to_process)
@@ -118,14 +118,14 @@ class TCPConnectionManager:
                 raise TCPCommunicationEstablishedError
 
         except TCPCommunicationEstablishedError:
-            logging.error("Nepodarilo se odeslat zpravu na serveru...")
+            logging.error("TCPCommunicationEstablishedError!")
 
         except (TypeError, AttributeError):
-            logging.critical("Nepodarilo se odeslat zpravu.. Chyba wifi")
+            logging.critical("Unable to send message!")
             time.sleep(60)
 
-        except Exception:
-            logging.warning("Problem se spojením")
+        except Exception as e:
+            logging.warning("Connection exception: {0}".format(e))
 
     def process_hello_response(self, client_socket, message):
 
@@ -136,14 +136,14 @@ class TCPConnectionManager:
 
         version = float(version)
 
-        logging.debug("Verze hello: {0}".format(version))
+        logging.debug("Server version: {0}".format(version))
 
         if version >= 1:
             register_message = self.device_info.area + ";SH;REGISTER;" + self.rm.sound_set + ";1.0\n"
             self.send_message(client_socket, register_message)
 
         else:
-            raise OutdatedVersionError("Je potreba aktualizovat verzi..")
+            raise OutdatedVersionError("Outdated version of server protocol: {0}!".format(version))
 
     def process_register_response(self, message):
         register_response = message_parser.parse(message, ";")
@@ -154,16 +154,16 @@ class TCPConnectionManager:
 
         if state == 'OK':
             self.connection_established = True
-            logging.info("Spojení navázano")
+            logging.info("Connection established.")
         elif state == 'ERR':
             error_note = register_response[4]
             error_note = error_note.replace("\n", "").replace("\r", "")
             if error_note == 'NONEXISTING_OR':
-                logging.error("Neexistujicí oblast řízení...")
+                logging.error("Nonexisting OR!")
             elif error_note == 'ALREADY_REGISTERED':
-                logging.error("OŘ již byla registrovná.")
+                logging.error("OR already registered!")
             elif error_note == 'INTERNAL_ERROR':
-                logging.error("Vnitřní chyba serveru, více info na serveru")
+                logging.error("Internal server error!")
 
     @staticmethod
     def connect(ip, port):
@@ -185,12 +185,12 @@ class TCPConnectionManager:
 
         # Vytvorim si docasny report_manager
         tmp_rm = report_manager.ReportManager(self.device_info.soundset, self.device_info.area)
-        logging.debug("Defaultni sada: {0}".format(self.device_info.soundset))
+        logging.debug("Default set: {0}".format(self.device_info.soundset))
 
         # Vylistuji sambu a ziskam dostupne sady
 
         sound_sets = system_functions.list_samba(self.device_info.smb_server, self.device_info.smb_home_folder)
-        logging.debug("Dostupne sady: {0}".format(sound_sets))
+        logging.debug("Available sets: {0}".format(sound_sets))
 
         updated = []
 
@@ -203,7 +203,7 @@ class TCPConnectionManager:
         while True:
             if (tmp_rm.sound_set in sound_sets) and (tmp_rm.sound_set not in updated):
 
-                logging.debug("Stahovani zvukove sady: {0}".format(tmp_rm.sound_set))
+                logging.debug("Downloading {0}...".format(tmp_rm.sound_set))
 
                 # aktualizace zvukové sady, podle config.ini
                 return_code, output, error = system_functions.download_sound_files_samba(
@@ -212,25 +212,25 @@ class TCPConnectionManager:
                     str.strip(tmp_rm.sound_set))
 
                 if str(return_code) == '0':
-                    logging.debug("Zvukova sada: {0} byla uspesne stazena...".format(tmp_rm.sound_set))
+                    logging.debug("{0} downloaded succesfully.".format(tmp_rm.sound_set))
                     updated.append(tmp_rm.sound_set)
 
                     if tmp_rm.parent_sound_set in updated:
-                        logging.debug("Rodicovska zvukova sada pro {0} je již stažena.({1})".format(tmp_rm.sound_set,
-                                                                                                    tmp_rm.parent_sound_set))
+                        logging.debug("Parent sound set for {0} is downloaded. ({1})".format(tmp_rm.sound_set,
+                                                                                             tmp_rm.parent_sound_set))
                         break
                     else:
                         tmp_rm = report_manager.ReportManager(tmp_rm.parent_sound_set, self.device_info.area)
                         tmp_rm.load_sound_config()
-                        logging.debug("Je potřeba získat sadu rodiče ({0})".format(tmp_rm.sound_set))
+                        logging.debug("{0} required.".format(tmp_rm.sound_set))
 
                 else:
                     # nastala chyba pri aktualizaci zvukove sady
-                    logging.debug("Nastala chyba pri aktualizaci zvukove sady {0}".format(tmp_rm.sound_set))
+                    logging.debug("Non-return code when downloading {0}".format(tmp_rm.sound_set))
                     break
 
             else:
-                logging.debug("Stahování úspešně dokončeno...")
+                logging.debug("Downloading finished.")
                 break
 
         version = "1.0"
@@ -238,14 +238,14 @@ class TCPConnectionManager:
         return_code = str(return_code)
 
         if return_code == '0':
-            logging.info("Aktualizace zvukové sady proběhla úspěšně.")
+            logging.info("Soundset update done..")
             info_message = self.device_info.area + ";SH;SYNC;DONE;" + tmp_rm.sound_set + ";" + version + "\n"
         elif return_code == '99':
-            logging.info("Při aktualizaci zvukove sady nastala chyba: na serveru neexistuje zvuková sada {0}".format(
+            logging.info("Soundset update error: {0} not found on server!".format(
                 tmp_rm.sound_set))
             info_message = self.device_info.area + ";SH;SYNC;ERR;" + version + ";" + str(error) + "\n"
         else:
-            logging.error("Při aktualizace zvukové sady nastala chyba.")
+            logging.error("Soundset update error!")
             info_message = self.device_info.area + ";SH;SYNC;ERR;" + version + ";" + str(error) + "\n"
 
         self.send_message(client_socket, info_message)
@@ -263,7 +263,7 @@ class TCPConnectionManager:
         parsed_message = message_parser.parse(message, ";")
 
         sound_set = parsed_message[3]
-        print("sound set: ", sound_set)
+        print("Sound set: ", sound_set)
         available = path.isdir('./' + sound_set)
 
         if available:
