@@ -41,78 +41,38 @@ class TCPConnectionManager:
         self.listen()
 
     def listen(self):
-        message_part = ""
-        message_queue = deque()
+        previous = ''
 
-        while True:
-            try:
-                message = self.socket.recv(2048)
+        try:
+            while True:
+                recv = previous +
+                       self.socket.recv(2048).decode('utf-8').replace('\r', '')
 
-                if message_part:
-                    # předchozí zpráva došla po částech
-                    message = message_part.encode('UTF-8') + message
-                    message_part = ""
+                if '\n' not in recv:
+                    continue
 
-                while True:
-                    # pokud zprava neobsahuje \n přijímám dál...
-                    if '\n' in message.decode('UTF-8'):
-                        break
+                logging.debug("Received: {0}".format(recv))
+                q = deque(decoded_message.splitlines(keepends=True))
+
+                self.gong_played = False
+
+                while q:
+                    item = q.popleft()
+
+                    if item.endswith('\n'):
+                        try:
+                            self.process_message(item.strip())
+                        except Exception as e:
+                            logging.warning("Mesasge processing error: "
+                                            "{0}!".format(str(e)))
                     else:
-                        message += self.socket.recv(2048)
+                        previous = item
 
-                decoded_message = message.decode('UTF-8')
-                logging.debug("Received: {0}".format(decoded_message))
-                decoded_message = decoded_message.replace("\r", "")  # rovnou vyhodit \r
-                message_queue += decoded_message.splitlines(True)
-
-                gong_played = False
-                while message_queue:
-
-                    if message_queue[-1].endswith('\n'):  # vše ok
-                        message_to_process = message_queue.popleft()
-
-                        message_to_process = message_to_process.replace("\n", "")
-                        logging.debug("Buffer: {0}".format(message_to_process))
-
-                        if "-;HELLO" in message_to_process:
-                            self.process_hello_response(self.socket, message_to_process)
-                        elif "REGISTER-RESPONSE;" in message_to_process:
-                            self.process_register_response(message_to_process)
-                        elif "SYNC" in message_to_process:
-                            self.sync(self.socket, message_to_process)
-                        elif "CHANGE-SET" in message_to_process:
-                            self.change_set(self.socket, message_to_process)
-                        elif "SETS-LIST" in message_to_process:
-                            self.sets_list(self.socket)
-                        elif "NESAHAT" in message_to_process:
-                            process_report.nesahat(self.rm)
-                        elif "POSUN" in message_to_process:
-                            process_report.posun(self.rm)
-                        elif (('SH;PRIJEDE;' in message_to_process) or ("SH;ODJEDE;" in message_to_process) or (
-                                "SH;PROJEDE;" in message_to_process)) and self.connection_established:
-
-                            if not gong_played:
-                                self.rm.create_report([os.path.join("gong", "gong_start.ogg"),
-                                                       os.path.join("salutation", "vazeni_cestujici.ogg")])
-                                gong_played = True
-
-                            logging.debug("Zpracovava se: {0}".format(message_to_process))
-                            process_report.process_message(message_to_process, self.rm)
-                    else:
-                        # vyhodím poslední prvek z fronty a připojím na začátek nové zprávy
-                        message_part = message_queue.popleft()
-                        break
-
-                if gong_played:
+                if self.gong_played:
                     self.rm.create_report([os.path.join("gong", "gong_end.ogg")])
 
-            except OSError as e:
-                logging.warning("Connection error: {0}".format(e))
-                break
-
-            except Exception as e:
-                logging.warning("Connection error: {0}".format(e))
-                break
+        except Exception as e:
+            logging.warning("Connection error: {0}".format(e))
 
     def send(self, message):
         try:
@@ -130,6 +90,36 @@ class TCPConnectionManager:
 
         except Exception as e:
             logging.warning("Connection exception: {0}".format(e))
+
+    def process_message(self, message):
+        parsed = message_parser.parse(message, [';'])
+
+        if parsed[1] == 'HELLO':
+            self.process_hello_response(self.socket, message_to_process)
+
+        if parsed[1] != 'SH':
+            return
+
+        if parsed[2] == "REGISTER-RESPONSE":
+            self.process_register_response(message_to_process)
+        elif parsed[2] == "SYNC":
+            self.sync(self.socket, message_to_process)
+        elif parsed[2] == "CHANGE-SET":
+            self.change_set(self.socket, message_to_process)
+        elif parsed[2] == "SETS-LIST":
+            self.sets_list(self.socket)
+        elif parsed[2] == "SPEC":
+            if parsed[3] == "NESAHAT":
+                process_report.nesahat(self.rm)
+            elif parsed[3] == "POSUN":
+                process_report.posun(self.rm)
+        elif parsed[2] == "PRIJEDE" or parsed[2] == "ODJEDE" or parsed[2] == "PROJEDE":
+            if not self.gong_played:
+                self.rm.create_report([os.path.join("gong", "gong_start.ogg"),
+                                       os.path.join("salutation", "vazeni_cestujici.ogg")])
+                self.gong_played = True
+
+            process_report.process_message(message, self.rm)
 
     def process_hello_response(self, message):
 
