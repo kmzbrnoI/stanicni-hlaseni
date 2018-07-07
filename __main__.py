@@ -27,16 +27,12 @@ def main():
         filename=device_info.path if device_info.path else None
     )
 
-    client = tcp_connection_manager.TCPConnectionManager()
-
     while True:
         try:
             server = udp_discover.find_server(device_info.server_name)
             logging.debug("Server found: {0}:{1}".format(server.ip, server_port))
 
-            client_socket = client.connect(server.ip, server.port)
-            client.send_message(client_socket, '-;HELLO;1.0')
-            client.listen(client_socket)
+            client = tcp_connection_manager.TCPConnectionManager(server.ip, server.port, device_info)
 
         except tcp_connection_manager.TCPCommunicationEstablishedError:
             logging.error("TCPCommunicationEstablishedError!")
