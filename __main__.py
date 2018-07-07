@@ -34,12 +34,9 @@ def main():
             server = udp_discover.find_server(device_info.server_name)
             logging.debug("Server found: {0}:{1}".format(server.ip, server_port))
 
-            for _ in range(5):
-                logging.debug("TCP pokus {0}".format((_ + 1)))
-                client_socket = client.connect(server.ip, int(server_port))
-                hello_message = "-;HELLO;1.0\n"
-                client.send_message(client_socket, hello_message)
-                client.listen(client_socket)
+            client_socket = client.connect(server.ip, server.port)
+            client.send_message(client_socket, '-;HELLO;1.0')
+            client.listen(client_socket)
 
         except tcp_connection_manager.TCPCommunicationEstablishedError:
             logging.error("TCPCommunicationEstablishedError!")

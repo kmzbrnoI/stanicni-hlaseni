@@ -113,7 +113,7 @@ class TCPConnectionManager:
     def send_message(client_socket, message):
         try:
             if message is not None:
-                client_socket.send(message.encode('UTF-8'))
+                client_socket.send((message + '\n').encode('UTF-8'))
             else:
                 raise TCPCommunicationEstablishedError
 
@@ -139,7 +139,7 @@ class TCPConnectionManager:
         logging.debug("Server version: {0}".format(version))
 
         if version >= 1:
-            register_message = self.device_info.area + ";SH;REGISTER;" + self.rm.sound_set + ";1.0\n"
+            register_message = self.device_info.area + ";SH;REGISTER;" + self.rm.sound_set + ";1.0"
             self.send_message(client_socket, register_message)
 
         else:
@@ -196,7 +196,7 @@ class TCPConnectionManager:
 
         # Oznamim serveru aktualizaci zvukovych sad
 
-        info_message = self.device_info.area + ";SH;SYNC;STARTED;\n"
+        info_message = self.device_info.area + ";SH;SYNC;STARTED;"
         self.send_message(client_socket, info_message)
 
         print(tmp_rm.sound_set)
@@ -243,10 +243,10 @@ class TCPConnectionManager:
         elif return_code == '99':
             logging.info("Soundset update error: {0} not found on server!".format(
                 tmp_rm.sound_set))
-            info_message = self.device_info.area + ";SH;SYNC;ERR;" + version + ";" + str(error) + "\n"
+            info_message = self.device_info.area + ";SH;SYNC;ERR;" + version + ";" + str(error)
         else:
             logging.error("Soundset update error!")
-            info_message = self.device_info.area + ";SH;SYNC;ERR;" + version + ";" + str(error) + "\n"
+            info_message = self.device_info.area + ";SH;SYNC;ERR;" + version + ";" + str(error)
 
         self.send_message(client_socket, info_message)
 
@@ -256,7 +256,7 @@ class TCPConnectionManager:
 
         sounds_set_string = ",".join(sound_sets)
 
-        info_message = self.device_info.area + ";SH;SETS-LIST;{" + sounds_set_string + "};\n"
+        info_message = self.device_info.area + ";SH;SETS-LIST;{" + sounds_set_string + "};"
         self.send_message(client_socket, info_message)
 
     def change_set(self, client_socket, message):
@@ -269,8 +269,8 @@ class TCPConnectionManager:
         if available:
             self.rm.sound_set = sound_set
             self.rm.load_sound_config()
-            info_message = self.device_info.area + ";SH;CHANGE-SET;OK;\n"
+            info_message = self.device_info.area + ";SH;CHANGE-SET;OK;"
         else:
-            info_message = self.device_info.area + ";SH;CHANGE-SET;ERR;SET_NOT_AVAILABLE\n"
+            info_message = self.device_info.area + ";SH;CHANGE-SET;ERR;SET_NOT_AVAILABLE"
 
         self.send_message(client_socket, info_message)
