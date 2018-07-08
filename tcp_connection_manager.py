@@ -99,7 +99,7 @@ class TCPConnectionManager:
             self._send(self.device_info.area + ";SH;REGISTER;" +
                       self.rm.soundset.name + ";1.0")
 
-        if parsed[1] != 'SH':
+        if parsed[1] != 'SH' or parsed[0] != self.device_info.area:
             return
 
         parsed[2] = parsed[2].upper()
