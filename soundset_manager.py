@@ -21,7 +21,7 @@ class SambaNotConfiguredError(Exception):
     pass
 
 
-class RemountErorr(Exception):
+class RemountError(Exception):
     pass
 
 
