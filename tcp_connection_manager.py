@@ -103,11 +103,7 @@ class TCPConnectionManager:
         elif parsed[2] == "SETS-LIST":
             self._send_sets_list()
         elif parsed[2] == "SPEC":
-            parsed[3] = parsed[3].upper()
-            if parsed[3] == "NESAHAT":
-                process_report.nesahat(self.rm)
-            elif parsed[3] == "POSUN":
-                process_report.posun(self.rm)
+            self.rm.process_spec_message(parsed[3].upper())
         elif parsed[2] == "PRIJEDE" or parsed[2] == "ODJEDE" or parsed[2] == "PROJEDE":
             if not self.gong_played and self.rm.soundset.play_gong:
                 self.rm.play_raw_report([

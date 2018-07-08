@@ -74,44 +74,23 @@ class ReportManager:
 
         report_player.play_report(self.soundset.assign(self.add_suffix(report)))
 
-    def nesahat(self):
-        return [os.path.join("spec", "nedotykejte_se_prosim_vystavenych_modelu")]
+    def process_spec_message(self, special_type):
+        if special_type == 'POSUN':
+            self.play_raw_report([
+                os.path.join("spec", "prosim_pozor"),
+                os.path.join("spec", "probiha_posun")
+            ])
 
-    def posun(self):
-        return [os.path.join("spec", "prosim_pozor"), os.path.join("spec", "probiha_posun")]
+        elif special_type == 'NESAHAT':
+            self.play_raw_report([
+                os.path.join("spec", "nedotykejte_se_prosim_vystavenych_modelu")
+            ])
+
+        else:
+            self.play_raw_report([os.path.join("spec", special_type)])
 
     def play_raw_report(self, report):
         report_player.play_report(self.soundset.assign(self.add_suffix(report)))
-
-    def add_suffix(self, report):
-        return map(lambda s: s + '.ogg', report)
-
-    def _get_traintype_file(self, train_type):
-        if self.soundset.train_num:
-            return os.path.join("trainType", train_type + "_cislo")
-        else:
-            return os.path.join("trainType", train_type + "")
-
-    def _get_time(self, time):
-        """
-        Converts time to list of sounds.
-        Example of time: '9:46'.
-        """
-        hours, minutes = time.split(':')
-
-        return [
-            os.path.join("time", "hours", hours.lstrip("0")),
-            os.path.join("time", "minutes", minutes.lstrip("0"))
-        ]
-
-    def _get_railway_file(self, railway, action):
-        # This only processes railways <=19!
-        if action == 'prijede':
-            return os.path.join("numbers", "arrive_railway", railway + "")
-        elif action == 'odjede':
-            return os.path.join("numbers", "leave_railway", railway + "")
-        else:
-            return os.path.join("numbers", "railway", railway + "")
 
     def _prijede(self, train_set):
         report = []
@@ -138,28 +117,67 @@ class ReportManager:
 
     def _odjede(self, train_set):
         report = []
-        report.append(os.path.join("parts", "ve_smeru"))
-        report.append(os.path.join("stations", train_set.final_station))
 
-        if (train_set.departure_time != '') and (self.soundset.time):
-            report += _get_time(train_set, "odjede")
+        if train_set.final_station:
+            report.append(os.path.join("parts", "ve_smeru"))
+            report.append(os.path.join("stations", train_set.final_station))
+
+        if train_set.departure_time and self.soundset.time:
+            report.append(os.path.join("parts", "pravidelny_odjezd"))
+            report += self._get_time(train_set.departure_time)
 
         report.append(os.path.join("parts", "odjede"))
         report.append(os.path.join("parts", "z_koleje"))
 
-        report.append(train_set.railway)
+        report.append(self._get_railway_file(train_set.railway, 'odjede'))
 
         return report
 
     def _projede(self, train_set):
         raise UnknownMessageError(Exception)
 
+    def _get_traintype_file(self, train_type):
+        if self.soundset.train_num:
+            return os.path.join("trainType", train_type + "_cislo")
+        else:
+            return os.path.join("trainType", train_type + "")
+
+    @staticmethod
+    def add_suffix(report):
+        return map(lambda s: s + '.ogg', report)
+
+    @staticmethod
+    def _get_time(time):
+        """
+        Converts time to list of sounds.
+        Example of time: '9:46'.
+        """
+        hours, minutes = time.split(':')
+
+        return [
+            os.path.join("time", "hours", hours.lstrip("0")),
+            os.path.join("time", "minutes", minutes.lstrip("0"))
+        ]
+
+    @staticmethod
+    def _get_railway_file(railway, action):
+        # This only processes railways <=19!
+        if action == 'prijede':
+            return os.path.join("numbers", "arrive_railway", railway + "")
+        elif action == 'odjede':
+            return os.path.join("numbers", "leave_railway", railway + "")
+        else:
+            return os.path.join("numbers", "railway", railway + "")
+
     def _parse_train_number(self, train_number):
         train_number_len = len(train_number)
         logging.debug("Train number: {0}".format(train_number))
 
-        if train_number_len % 2 == 0:  # zjistím, jestli je delka čísla vlaku sudá
-            first_part, second_part = train_number[:len(train_number) // 2], train_number[len(train_number) // 2:]
+        if train_number_len % 2 == 0:
+            first_part, second_part = (
+                train_number[:len(train_number) // 2],
+                train_number[len(train_number) // 2:]
+            )
 
             tmp_list = self._find_audio_number(first_part)
             first_list = self._assign_number_directory(tmp_list)
