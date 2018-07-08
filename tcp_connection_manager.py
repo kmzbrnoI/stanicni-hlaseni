@@ -63,7 +63,7 @@ class TCPConnectionManager:
                         previous = item
 
                 if self.gong_played:
-                    self.rm.play_raw_report([os.path.join("gong", "gong_end.ogg")])
+                    self.rm.play_raw_report([os.path.join("gong", "gong_end")])
 
         except Exception as e:
             logging.error("Connection error: {0}".format(e))
@@ -111,8 +111,8 @@ class TCPConnectionManager:
         elif parsed[2] == "PRIJEDE" or parsed[2] == "ODJEDE" or parsed[2] == "PROJEDE":
             if not self.gong_played and self.rm.soundset.play_gong:
                 self.rm.play_raw_report([
-                    os.path.join("gong", "gong_start.ogg"),
-                    os.path.join("salutation", "vazeni_cestujici.ogg")
+                    os.path.join("gong", "gong_start"),
+                    os.path.join("salutation", "vazeni_cestujici")
                 ])
                 self.gong_played = True
 
