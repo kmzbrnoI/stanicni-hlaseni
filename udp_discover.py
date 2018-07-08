@@ -7,10 +7,7 @@ It can be run either as a Python module or as a script.
 
 import logging
 import socket
-import time
 import sys
-
-import system_functions
 
 
 DISCOVER_PORT = 5880
@@ -69,8 +66,7 @@ def find_server(name: str) -> ServerInfo:
 
     for i in range(NO_TRY):
         s.sendto(
-            ("hJOP;1.0;sh;;" + system_functions.get_device_ip() + ";;;\n")
-            .encode('utf-8'),
+            ("hJOP;1.0;sh;;;;;\n").encode('utf-8'),
             ('<broadcast>', DISCOVER_PORT)
         )
 

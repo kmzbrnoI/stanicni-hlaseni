@@ -37,10 +37,6 @@ def download_sound_files_samba(server_ip, home_folder, sound_set):
         return 1, "timeout", "timeout"
 
 
-def get_device_ip():
-    return socket.gethostbyname(socket.gethostname())
-
-
 class DeviceInfo:
 
     def __init__(self):
