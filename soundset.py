@@ -38,7 +38,7 @@ class SoundSet:
 
         try:
             self.name = parser.sections()[0]
-            self.parent_sound_set = (parser[self.name]['base'])
+            self.parent_sound_set = parser[self.name]['base']
             self.play_gong = parser.getboolean("sound", "gong")
             self.salutation = parser.getboolean('sound', 'salutation')
             self.train_num = parser.getboolean('sound', 'trainNum')

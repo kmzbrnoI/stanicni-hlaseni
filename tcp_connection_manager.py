@@ -15,6 +15,7 @@ import traceback
 import message_parser
 import report_manager
 import soundset_manager
+from soundset import SoundSet
 
 
 class TCPCommunicationEstablishedError(Exception):
@@ -65,7 +66,8 @@ class TCPConnectionManager:
                             self._process_message(item.strip())
                         except Exception as e:
                             logging.warning("Message processing error: "
-                                            "{0}!".format(str(e)) + '\n' + traceback.print_exc())
+                                            "{0}!".format(str(e)))
+                            traceback.print_exc()
                     else:
                         previous = item
 
@@ -104,7 +106,7 @@ class TCPConnectionManager:
         if parsed[2] == "REGISTER-RESPONSE":
             self._process_register_response(parsed)
         elif parsed[2] == "SYNC":
-            self._sync(parsed)
+            self._process_sync(parsed)
         elif parsed[2] == "CHANGE-SET":
             self._change_set(parsed)
         elif parsed[2] == "SETS-LIST":
@@ -158,13 +160,42 @@ class TCPConnectionManager:
             self.device_info.soundset_path
         )
 
-        if self.device_info.smb_server and self.sevice_info.smb_folder:
+        if self.device_info.smb_server and self.device_info.smb_home_folder:
             sound_sets += soundset_manager.get_samba_sets_list(
                 self.device_info.smb_server,
-                self.device_info.smb_home_folder
+                self.device_info.smb_home_folder,
+                self.device_info.soundset_path,
             )
 
         self._send(
             self.device_info.area + ';SH;SETS-LIST;{' +
             ','.join(set(sound_sets)) + '}'
         )
+
+    def _process_sync(self, parsed):
+        self._send(self.device_info.area + ";SH;SYNC;STARTED;")
+
+        if not self.device_info.smb_server or not self.device_info.smb_home_folder:
+            self._send(self.device_info.area + ";SH;SYNC;ERR;;Samba není nakonfigurována!")
+            return
+
+        try:
+            soundset_manager.sync(
+                server=self.device_info.smb_server,
+                home_folder=self.device_info.smb_home_folder,
+                soundset=self.device_info.soundset,
+                soundset_path=self.device_info.soundset_path,
+            )
+            self.rm.soundset = SoundSet(
+                self.device_info.soundset_path, self.device_info.soundset
+            )
+            self._send(self.device_info.area + ";SH;SYNC;DONE;" +
+                       self.device_info.soundset + ";")
+        except Exception as e:
+            # DEBUG:
+            logging.warning("Download error: "
+                            "{0}!".format(str(e)))
+            traceback.print_exc()
+
+            self._send(self.device_info.area + ";SH;SYNC;ERR;" +
+                       ";" + str(e))
