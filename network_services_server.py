@@ -1,4 +1,9 @@
 #!/usr/bin/python3
+
+"""
+This is a simple hJOPserver emulator.
+"""
+
 import socket
 
 

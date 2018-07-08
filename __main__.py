@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+"""
+This is a main service executable file. Use it to start Station Announcement.
+"""
+
 import logging
 import os
 import time

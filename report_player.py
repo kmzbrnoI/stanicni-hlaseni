@@ -1,3 +1,7 @@
+"""
+This file defines low-level functions for palying sound.
+"""
+
 import os
 import pygame.mixer
 
