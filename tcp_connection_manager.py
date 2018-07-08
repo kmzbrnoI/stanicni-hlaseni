@@ -43,7 +43,7 @@ class TCPConnectionManager:
         previous = ''
 
         try:
-            while True:
+            while self.socket:
                 recv = previous + \
                        self.socket.recv(2048).decode('utf-8').replace('\r', '')
 
@@ -74,21 +74,12 @@ class TCPConnectionManager:
 
     def send(self, message):
         try:
-            if message is not None:
+            if self.socket:
                 logging.debug("< {0}".format(message))
                 self.socket.send((message + '\n').encode('UTF-8'))
-            else:
-                raise TCPCommunicationEstablishedError  # TODO: really?
-
-        except TCPCommunicationEstablishedError:
-            logging.error("TCPCommunicationEstablishedError!")
-
-        except (TypeError, AttributeError):
-            logging.critical("Unable to send message!")
-            time.sleep(60)
 
         except Exception as e:
-            logging.warning("Connection exception: {0}".format(e))
+            logging.error("Connection exception: {0}".format(e))
 
     def process_message(self, message):
         parsed = message_parser.parse(message, [';'])
@@ -116,6 +107,7 @@ class TCPConnectionManager:
         elif parsed[2] == "SETS-LIST":
             self.send_sets_list()
         elif parsed[2] == "SPEC":
+            parsed[3] = parsed[3].upper()
             if parsed[3] == "NESAHAT":
                 process_report.nesahat(self.rm)
             elif parsed[3] == "POSUN":
