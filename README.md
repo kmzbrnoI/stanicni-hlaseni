@@ -19,6 +19,7 @@ installed, it requires no further control from SSH.
  7. Optional: configure WiFi (see `wpa_supplicant.conf`).
  8. Optional: make system read-only via
     [this script](https://github.com/ways/rpi-readonly).
+ 9. Optional: install `smblient` to clone sounds via samba.
 
 To uninstall a systemd service, run `make uninstall`.
 
