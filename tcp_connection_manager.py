@@ -35,11 +35,11 @@ class TCPConnectionManager:
             self.device_info.area
         )
 
-        self.connect(ip, port)
-        self.send('-;HELLO;1.0')
-        self.listen()
+        self._connect(ip, port)
+        self._send('-;HELLO;1.0')
+        self._listen()
 
-    def listen(self):
+    def _listen(self):
         previous = ''
 
         try:
@@ -59,7 +59,7 @@ class TCPConnectionManager:
 
                     if item.endswith('\n'):
                         try:
-                            self.process_message(item.strip())
+                            self._process_message(item.strip())
                         except Exception as e:
                             logging.warning("Mesasge processing error: "
                                             "{0}!".format(str(e)))
@@ -72,7 +72,7 @@ class TCPConnectionManager:
         except Exception as e:
             logging.error("Connection error: {0}".format(e))
 
-    def send(self, message):
+    def _send(self, message):
         try:
             if self.socket:
                 logging.debug("< {0}".format(message))
@@ -81,7 +81,7 @@ class TCPConnectionManager:
         except Exception as e:
             logging.error("Connection exception: {0}".format(e))
 
-    def process_message(self, message):
+    def _process_message(self, message):
         parsed = message_parser.parse(message, [';'])
         if len(parsed) < 2:
             return
@@ -89,8 +89,8 @@ class TCPConnectionManager:
         parsed[1] = parsed[1].upper()
 
         if parsed[1] == 'HELLO':
-            self.process_hello(parsed)
-            self.send(self.device_info.area + ";SH;REGISTER;" +
+            self._process_hello(parsed)
+            self._send(self.device_info.area + ";SH;REGISTER;" +
                       self.rm.sound_set + ";1.0")
 
         if parsed[1] != 'SH':
@@ -99,13 +99,13 @@ class TCPConnectionManager:
         parsed[2] = parsed[2].upper()
 
         if parsed[2] == "REGISTER-RESPONSE":
-            self.process_register_response(parsed)
+            self._process_register_response(parsed)
         elif parsed[2] == "SYNC":
-            self.sync(parsed)
+            self._sync(parsed)
         elif parsed[2] == "CHANGE-SET":
-            self.change_set(parsed)
+            self._change_set(parsed)
         elif parsed[2] == "SETS-LIST":
-            self.send_sets_list()
+            self._send_sets_list()
         elif parsed[2] == "SPEC":
             parsed[3] = parsed[3].upper()
             if parsed[3] == "NESAHAT":
@@ -122,7 +122,7 @@ class TCPConnectionManager:
 
             process_report.process_message(message, self.rm)
 
-    def process_hello(self, parsed):
+    def _process_hello(self, parsed):
         version = float(parsed[2])
         logging.info("Server version: {0}.".format(version))
 
@@ -130,7 +130,7 @@ class TCPConnectionManager:
             raise OutdatedVersionError("Outdated version of server protocol: "
                                        "{0}!".format(version))
 
-    def process_register_response(self, parsed):
+    def _process_register_response(self, parsed):
         state = parsed[3].upper()
 
         if state == 'OK':
@@ -145,7 +145,7 @@ class TCPConnectionManager:
             logging.error("Invalid state: {0}!".format(state))
             # TODO: what to do here?
 
-    def connect(self, ip, port):
+    def _connect(self, ip, port):
         try:
             self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.socket.settimeout(50)
@@ -154,7 +154,7 @@ class TCPConnectionManager:
             logging.warning("Connect exception: {0}".format(e))
             self.socket = None
 
-    def sync(self, parsed):  # TODO: check for errors and refactoring
+    def _sync(self, parsed):  # TODO: check for errors and refactoring
         # Vytvorim si docasny report_manager
         tmp_rm = report_manager.ReportManager(self.device_info.soundset, self.device_info.area)
         logging.debug("Default set: {0}".format(self.device_info.soundset))
@@ -169,7 +169,7 @@ class TCPConnectionManager:
         # Oznamim serveru aktualizaci zvukovych sad
 
         info_message = self.device_info.area + ";SH;SYNC;STARTED;"
-        self.send(info_message)
+        self._send(info_message)
 
         print(tmp_rm.sound_set)
         while True:
@@ -220,17 +220,17 @@ class TCPConnectionManager:
             logging.error("Soundset update error!")
             info_message = self.device_info.area + ";SH;SYNC;ERR;" + version + ";" + str(error)
 
-        self.send(info_message)
+        self._send(info_message)
 
-    def send_sets_list(self):
+    def _send_sets_list(self):
         sound_sets = system_functions.list_samba(self.device_info.smb_server, self.device_info.smb_home_folder)
 
         sounds_set_string = ",".join(sound_sets)
 
         info_message = self.device_info.area + ";SH;SETS-LIST;{" + sounds_set_string + "};"
-        self.send(info_message)
+        self._send(info_message)
 
-    def change_set(self, parsed):
+    def _change_set(self, parsed):
         sound_set = parsed[3]
 
         if path.isdir('./' + sound_set):  # TODO: refactor!
@@ -240,4 +240,4 @@ class TCPConnectionManager:
         else:
             info_message = self.device_info.area + ";SH;CHANGE-SET;ERR;SET_NOT_AVAILABLE"
 
-        self.send(info_message)
+        self._send(info_message)
