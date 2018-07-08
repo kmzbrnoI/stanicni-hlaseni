@@ -121,5 +121,5 @@ def remount_ro(path):
     _remount(path, 'ro')
 
 
-def remount_rw():
+def remount_rw(path):
     _remount(path, 'rw')
