@@ -113,8 +113,8 @@ def _remount(path, mode):
     stdout, stderr = process.communicate(timeout=60)
 
     if process.returncode != 0:
-        raise RemountError('Remount RO error: '
-                           '{0}'.format(stderr.decode('utf-8')))
+        raise RemountError('Remount {0} error: '
+                           '{1}'.format(mode, stderr.decode('utf-8')))
 
 
 def remount_ro(path):
