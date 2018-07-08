@@ -17,11 +17,16 @@ class DownloadError(Exception):
     pass
 
 
+class SambaNotConfiguredError(Exception):
+    pass
+
+
 def sync(server, home_folder, soundset, soundset_path):
     """
     Downloads current soundset from samba server and all parent soundsets too.
     """
     current = soundset
+    loaded = []
 
     while current:
         logging.debug("Downloading {0}...".format(current))
@@ -35,9 +40,10 @@ def sync(server, home_folder, soundset, soundset_path):
         parser = ConfigParser()
         parser.read(fn)
         name = parser.sections()[0]
+        loaded.append(current)
         current = parser[name]['base']
 
-        if current == soundset:  # avoid infinite loop when circular reference
+        if current in loaded:  # avoid infinite loop when circular reference
             break
 
 
@@ -64,17 +70,12 @@ def get_local_sets_list(root):
             if os.path.isdir(os.path.join(root, o)) and o[0] != '.']
 
 
-def change_set(self, parsed):
-    sound_set = parsed[3]
+def change_set(soundset, soundset_path, server, home_folder):
+    if not os.path.isdir(os.path.join(soundset_path, soundset)):
+        if not server or not home_folder:
+            raise SambaNotConfiguredError('Samba is not configured!')
 
-    if path.isdir('./' + sound_set):  # TODO: refactor!
-        self.rm.sound_set = sound_set
-        self.rm.load_sound_config()
-        info_message = self.device_info.area + ";SH;CHANGE-SET;OK;"
-    else:
-        info_message = self.device_info.area + ";SH;CHANGE-SET;ERR;SET_NOT_AVAILABLE"
-
-    self._send(info_message)
+        sync(server, home_folder, soundset, soundset_path)
 
 
 def _download_sound_set(server_ip, home_folder, sound_set, soundset_path):

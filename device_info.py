@@ -42,3 +42,27 @@ class DeviceInfo:
         except Exception as e:
             raise ConfigFileBadFormatError("Bad format of config file:"
                                            "{0}!".format(str(e)))
+
+    def store(self, filename):
+        config = ConfigParser()
+
+        config.add_section('server')
+        config.set('server', 'name', self.server_name)
+
+        config.add_section('area')
+        config.set('area', 'name', self.area)
+
+        config.add_section('logging')
+        config.set('logging', 'verbosity', self.verbosity)
+        config.set('logging', 'path', self.path)
+
+        config.add_section('sound')
+        config.set('sound', 'soundset_path', self.soundset_path)
+        config.set('sound', 'soundset', self.soundset)
+
+        config.add_section('samba')
+        config.set('samba', 'server', self.smb_server)
+        config.set('samba', 'home_folder', self.smb_home_folder)
+
+        with open(filename, 'w') as f:
+            config.write(f)

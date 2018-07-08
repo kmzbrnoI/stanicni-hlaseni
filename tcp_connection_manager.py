@@ -16,6 +16,7 @@ import message_parser
 import report_manager
 import soundset_manager
 from soundset import SoundSet
+import device_info
 
 
 class TCPCommunicationEstablishedError(Exception):
@@ -108,7 +109,7 @@ class TCPConnectionManager:
         elif parsed[2] == "SYNC":
             self._process_sync(parsed)
         elif parsed[2] == "CHANGE-SET":
-            self._change_set(parsed)
+            self._process_change_set(parsed)
         elif parsed[2] == "SETS-LIST":
             self._process_sets_list()
         elif parsed[2] == "SPEC":
@@ -180,6 +181,8 @@ class TCPConnectionManager:
             return
 
         try:
+            # TODO: remount
+
             soundset_manager.sync(
                 server=self.device_info.smb_server,
                 home_folder=self.device_info.smb_home_folder,
@@ -199,3 +202,27 @@ class TCPConnectionManager:
 
             self._send(self.device_info.area + ";SH;SYNC;ERR;" +
                        ";" + str(e))
+
+    def _process_change_set(self, parsed):
+        try:
+            # TODO: remount
+
+            soundset_manager.change_set(
+                soundset=parsed[3],
+                soundset_path=self.device_info.soundset_path,
+                server=self.device_info.smb_server,
+                home_folder=self.device_info.smb_home_folder,
+            )
+            self.rm.soundset = SoundSet(
+                self.device_info.soundset_path, parsed[3]
+            )
+            self.device_info.soundset = parsed[3]
+            self.device_info.store(device_info.GLOBAL_CONFIG_FILENAME)
+            self._send(self.device_info.area + ";SH;CHANGE-SET;OK;")
+        except Exception as e:
+            # DEBUG:
+            logging.warning("Download error: "
+                            "{0}!".format(str(e)))
+            traceback.print_exc()
+
+            self._send(self.device_info.area + ";SH;CHANGE-SET;ERR;" + str(e))
