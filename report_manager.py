@@ -30,8 +30,10 @@ class ReportManager:
         self.time = True
         self.area = area
         self.sound_set_path = sound_set_path
-        logging.debug("Soundset loaded from ".format(self.sound_set_path))
         self.load_sound_config()
+        logging.info("Soundset loaded from {0}.".format(
+            os.path.join(self.sound_set_path, self.sound_set)
+        ))
 
     def load_sound_config(self):
         # funkce pro načtení konfiguračního souboru

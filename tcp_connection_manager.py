@@ -35,7 +35,7 @@ class TCPConnectionManager:
             self.device_info.area
         )
 
-        self.connect(server.ip, server.port)
+        self.connect(ip, port)
         self.send('-;HELLO;1.0')
         self.listen()
 
@@ -50,13 +50,12 @@ class TCPConnectionManager:
                 if '\n' not in recv:
                     continue
 
-                logging.debug("Received: {0}".format(recv))
-                q = deque(decoded_message.splitlines(keepends=True))
-
+                q = deque(recv.splitlines(keepends=True))
                 self.gong_played = False
 
                 while q:
                     item = q.popleft()
+                    logging.debug("> {0}".format(item.strip()))
 
                     if item.endswith('\n'):
                         try:
@@ -71,11 +70,12 @@ class TCPConnectionManager:
                     self.rm.create_report([os.path.join("gong", "gong_end.ogg")])
 
         except Exception as e:
-            logging.warning("Connection error: {0}".format(e))
+            logging.error("Connection error: {0}".format(e))
 
     def send(self, message):
         try:
             if message is not None:
+                logging.debug("< {0}".format(message))
                 self.socket.send((message + '\n').encode('UTF-8'))
             else:
                 raise TCPCommunicationEstablishedError  # TODO: really?
@@ -92,10 +92,13 @@ class TCPConnectionManager:
 
     def process_message(self, message):
         parsed = message_parser.parse(message, [';'])
+        if len(parsed) < 2:
+            return
+
         parsed[1] = parsed[1].upper()
 
         if parsed[1] == 'HELLO':
-            self.process_hello(self.socket, parsed)
+            self.process_hello(parsed)
             self.send(self.device_info.area + ";SH;REGISTER;" +
                       self.rm.sound_set + ";1.0")
 
@@ -129,7 +132,7 @@ class TCPConnectionManager:
 
     def process_hello(self, parsed):
         version = float(parsed[2])
-        logging.debug("Server version: {0}".format(version))
+        logging.info("Server version: {0}.".format(version))
 
         if version < 1:
             raise OutdatedVersionError("Outdated version of server protocol: "
@@ -139,7 +142,8 @@ class TCPConnectionManager:
         state = parsed[3].upper()
 
         if state == 'OK':
-            logging.info("Connection established.")
+            logging.info("Successfully registered to "
+                         "{0}.".format(self.device_info.area))
 
         elif state == 'ERR':
             error_note = parsed[4].upper()

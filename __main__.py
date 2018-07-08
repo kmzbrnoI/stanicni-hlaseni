@@ -30,7 +30,7 @@ def main():
     while True:
         try:
             server = udp_discover.find_server(device_info.server_name)
-            logging.debug("Server found: {0}:{1}".format(server.ip, server_port))
+            logging.info("Server found: {0}:{1}.".format(server.ip, server.port))
 
             client = tcp_connection_manager.TCPConnectionManager(server.ip, server.port, device_info)
 
@@ -47,6 +47,8 @@ def main():
         except tcp_connection_manager.OutdatedVersionError:
             logging.critical("Outdated version of server!")
             break
+
+        time.sleep(1)
 
 
 if __name__ == "__main__":

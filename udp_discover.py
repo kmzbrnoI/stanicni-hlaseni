@@ -75,7 +75,7 @@ def find_server(name: str) -> ServerInfo:
                 message, (ip, port) = s.recvfrom(4096)
                 messages = message.decode('utf-8').strip().split('\n')
                 for m in messages:
-                    logging.info('> ' + m)
+                    logging.debug('> ' + m)
 
                     try:
                         server = ServerInfo(m)
@@ -94,7 +94,7 @@ def find_server(name: str) -> ServerInfo:
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
 
     if len(sys.argv) < 2:
         sys.stderr.write("Usage: ./udp_discover.py server_name\n")
