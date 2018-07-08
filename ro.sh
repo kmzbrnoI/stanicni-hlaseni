@@ -1,3 +1,3 @@
 #!/bin/bash
 
-mount -o remount,ro / ; sudo mount -o remount,ro /boot
+mount -o remount,ro / ; mount -o remount,ro /boot
