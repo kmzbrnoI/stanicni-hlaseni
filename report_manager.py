@@ -31,15 +31,17 @@ class TrainSet:
         self.arrival_time = parsed[5] if len(parsed) > 5 else ''
         self.departure_time = parsed[6] if len(parsed) > 6 else ''
 
-    def print_info(self):
-        logging.debug("Train number: {0}".format(self.train_number))
-        logging.debug("Train type: {0}".format(self.train_type))
-        logging.debug("Railway: {0}".format(self.railway))
-        logging.debug("Start station: {0}".format(self.start_station))
-        logging.debug("Final station: {0}".format(self.final_station))
-        logging.debug("Arrival time: {0}".format(self.arrival_time))
-        logging.debug("Departure time: {0}".format(self.departure_time))
-        logging.debug("Station: {0}".format(self.departure_time))
+    def __str__(self):
+        return ("Train number: {0}\n".format(self.train_number) +
+                "Train type: {0}\n".format(self.train_type) +
+                "Railway: {0}\n".format(self.railway) +
+                "Start station: {0}\n".format(self.start_station) +
+                "Final station: {0}\n".format(self.final_station) +
+                "Arrival time: {0}\n".format(self.arrival_time) +
+                "Departure time: {0}\n".format(self.departure_time) +
+                "Station: {0}".format(self.departure_time))
+
+    __repr__ = __str__
 
 
 class ReportManager:
@@ -51,7 +53,6 @@ class ReportManager:
     def process_trainset_message(self, parsed):
         message_type = parsed[2].lower()
         train_set = TrainSet(parsed[3])
-        train_set.print_info()
 
         # Prepare common part of announcement
         report = []
