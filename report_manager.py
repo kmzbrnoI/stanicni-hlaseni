@@ -1,184 +1,161 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+"""
+This file cares about finding proper sounds to announcement.
+"""
 
 import logging
 import os
-from configparser import ConfigParser
 
-import pygame.mixer
-
-
-DEFAULT_CONFIG_FILENAME = 'config.ini'
+import message_parser
+from soundset import SoundSet
+import report_player
 
 
-class ConfigFileNotFoundError(Exception):
+class UnknownMessageTypeError(Exception):
     pass
 
 
-class ConfigFileBadFormatError(Exception):
-    pass
+class TrainSet:
+    def __init__(self, message):
+        self.station = ''
+        self.load_train_set(message)
+
+    def load_train_set(self, message):
+        parsed = message_parser.parse(message, [';'])
+
+        self.train_number = parsed[0]
+        self.train_type = parsed[1]
+        self.railway = parsed[2]
+        self.start_station = parsed[3]
+        self.final_station = parsed[4]
+
+        self.arrival_time = parsed[5] if len(parsed) > 5 else ''
+        self.departure_time = parsed[6] if len(parsed) > 6 else ''
+
+    def print_info(self):
+        logging.debug("Train number: {0}".format(self.train_number))
+        logging.debug("Train type: {0}".format(self.train_type))
+        logging.debug("Railway: {0}".format(self.railway))
+        logging.debug("Start station: {0}".format(self.start_station))
+        logging.debug("Final station: {0}".format(self.final_station))
+        logging.debug("Arrival time: {0}".format(self.arrival_time))
+        logging.debug("Departure time: {0}".format(self.departure_time))
+        logging.debug("Station: {0}".format(self.departure_time))
 
 
 class ReportManager:
-    def __init__(self, sound_set, sound_set_path, area):
-        self.config_file_name = DEFAULT_CONFIG_FILENAME
-        self.sound_set = sound_set
-        self.parent_sound_set = ''
-        self.play_gong = True
-        self.salutation = True
-        self.train_num = True
-        self.time = True
-        self.area = area
-        self.sound_set_path = sound_set_path
-        self.load_sound_config()
-        logging.info("Soundset loaded from {0}.".format(
-            os.path.join(self.sound_set_path, self.sound_set)
-        ))
 
-    def load_sound_config(self):
-        # funkce pro načtení konfiguračního souboru
-        parser = ConfigParser()
-        file_path = os.path.join(
-            self.sound_set_path,
-            self.sound_set,
-            self.config_file_name)
+    def __init__(self, device_info):
+        self.area = device_info.area
+        self.soundset = SoundSet(device_info.soundset_path, device_info.soundset)
 
-        if not os.path.isfile(file_path):
-            raise ConfigFileNotFoundError("Config file not found: "
-                                          "{0}!".format(file_path))
+    def process_trainset_message(self, parsed):
+        message_type = parsed[2].lower()
+        train_set = TrainSet(parsed[3])
+        train_set.print_info()
 
-        parser.read(file_path)
+        # Prepare common part of announcement
+        report = []
+        if self.soundset.salutation:
+            report.append(os.path.join("salutation", "prosim_pozor.ogg"))
+        report.append(self._get_traintype_file(train_set.train_type))
 
-        try:
-            self.sound_set = parser.sections()[0]
-            self.parent_sound_set = (parser[self.sound_set]['base'])
-            self.play_gong = parser.getboolean("sound", "gong")
-            self.salutation = parser.getboolean('sound', 'salutation')
-            self.train_num = parser.getboolean('sound', 'trainNum')
-            self.time = parser.getboolean('sound', 'time')
-        except Exception as e:
-            raise ConfigFileBadFormatError("Bad format of config file:"
-                                           "{0}!".format(str(e)))
+        if self.soundset.train_num:
+            report += self._parse_train_number(train_set.train_number)
 
-    def print_sound_config(self):
-        # funkce pouze pro správné otestování funkčnosti
-        logging.debug("Sound set: ".format(self.sound_set))
-        logging.debug("Parent sound set: ".format(self.parent_sound_set))
-        logging.debug("Gong: ".format(self.play_gong))
-        logging.debug("Salutation: ".format(self.salutation))
-        logging.debug("Train number: ".format(self.train_num))
-        logging.debug("Time: ".format(self.time))
-
-    def define_sound_sequence(self, sound_sequnce):
-        """
-        Funkce na úpravu pole pro generování finálního zvuku.
-        (dle parametru konfiguračního souboru)
-        """
-        elements_to_remove = []
-
-        for i, sound in enumerate(sound_sequnce):
-            if not self.play_gong:
-                if "gong" in sound:
-                    elements_to_remove.append(sound)
-            if not self.salutation:
-                if "salutation" in sound:
-                    elements_to_remove.append(sound)
-            if not self.train_num:
-                if "trainNum" in sound:
-                    elements_to_remove.append(sound)
-            if not self.time:
-                if "time" in sound:
-                    elements_to_remove.append(sound)
-
-        final_sequence = [x for x in sound_sequnce if x not in elements_to_remove]
-
-        return final_sequence
-
-    def all_files_exist(self, sound_sequence):
-        # funkce zkontroluje zda existuji vsechny soubory, pokud se soubor nenachazi v aktualni zvukove sade,
-        # zkusit sadu rodice
-        # data v sound_sequence jsou ve formatu /parts/prijel.ogg
-
-        exist = True
-        for i, sound in enumerate(sound_sequence):
-            if os.path.exists(os.path.join(self.sound_set_path, self.sound_set, sound)):
-                sound_sequence[i] = os.path.join(self.sound_set_path, self.sound_set, sound)
-            else:
-                logging.debug('File not found in %s' % sound)
-                if os.path.exists(os.path.join(self.sound_set_path, self.parent_sound_set, sound)):
-                    sound_sequence[i] = os.path.join(self.sound_set_path, self.parent_sound_set, sound)
-                    logging.debug("Using file from parent sound set.")
-                elif os.path.exists(os.path.join(self.sound_set_path, "default", sound)):
-                    sound_sequence[i] = os.path.join(self.sound_set_path, "default", sound)
-                    logging.debug("Using sound from default soundset.")
-                else:
-                    logging.error("File not found!")
-                    exist = False
-
-        return exist
-
-    @staticmethod
-    def play_report(sound_sequence):
-
-        pygame.mixer.pre_init(44100, -16, 1, 512)
-        pygame.mixer.init()
-
-        clock = pygame.time.Clock()
-        sounds = [pygame.mixer.Sound(f) for f in sound_sequence]
-        for s in sounds:
-            s.play()
-            channel = s.play()
-            while channel.get_busy():
-                clock.tick(10)
-
-    def create_report(self,
-                      sound_sequence):
-
-        redefined_sound_sequence = self.define_sound_sequence(sound_sequence)
-
-        if len(redefined_sound_sequence) > 0:
-            # nejdrive otestuji, zda upraveny seznam obsahuje nejake polozky
-            if self.all_files_exist(redefined_sound_sequence):
-                self.play_report(redefined_sound_sequence)
-
-            else:
-                logging.error('File read error!')
+        if message_type == "prijede":
+            report += self._prijede(train_set)
+        elif message_type == "odjede":
+            report += self._odjede(train_set)
+        elif message_type == "projede":
+            report += self._projede(train_set)
         else:
-            logging.error("Announcement list is empty!")
+            raise UnknownMessageTypeError("This type of announcement is not supported!")
 
-    @staticmethod
-    def find_audio_number(number):
-        sound_set = []
+        report_player.play_report(self.soundset.assign(report))
 
-        for position, character in enumerate(reversed(number)):  # jdu od jednotek, abych synchronizoval pozici a číslo
+    def nesahat(self):
+        return [os.path.join("spec", "nedotykejte_se_prosim_vystavenych_modelu.ogg")]
 
-            # pouze pro pro hodnoty 10, 11, 12...
-            if (position == 1) and (character == "1"):
-                first_char = sound_set[0]
-                sound_set[0] = '1' + first_char
+    def posun(self):
+        return [os.path.join("spec", "prosim_pozor.ogg"), os.path.join("spec", "probiha_posun.ogg")]
 
-            else:
-                data = character + ('0' * position)  # vytisknu číslo + počet nul
-                sound_set.append(data)
+    def play_raw_report(self, report):
+        report_player.play_report(self.soundset.assign(report))
 
-        output_list = []
+    def _get_traintype_file(self, train_type):
+        if self.soundset.train_num:
+            return os.path.join("trainType", train_type + "_cislo.ogg")
+        else:
+            return os.path.join("trainType", train_type + ".ogg")
 
-        for sound in reversed(sound_set):  # nakonec ještě nahrávky vytisknu v opačném pořadí pro správné seřazení
-            if int(sound) != 0:  # přetypuji na integer pokud znak není nula, připojím do seznamu
-                output_list.append(sound)
+    def _get_time(self, train_set, action):
+        report = []
+        hours = ''
+        minutes = ''
 
-        return output_list
+        if action == "prijede":
+            report.append(os.path.join("parts", "pravidelny_prijezd.ogg"))
+            hours, minutes = train_set.arrival_time.split(":")
 
-    @staticmethod
-    def assign_number_directory(input_list):
-        output_list = [os.path.join("numbers", "trainNum", (x + ".ogg")) for x in input_list[:-1]]
-        last_item = os.path.join("numbers", "trainNum_end", (input_list[-1] + ".ogg"))
-        output_list.append(last_item)
+        elif action == "odjede":
+            report.append(os.path.join("parts", "pravidelny_odjezd.ogg"))
+            hours, minutes = train_set.departure_time.split(":")
 
-        return output_list
+        hours = os.path.join("time", "hours", (hours.lstrip("0") + ".ogg"))  # odstraneni levostrannych nul (napr. 09 minut)
+        minutes = os.path.join("time", "minutes", (minutes.lstrip("0") + ".ogg"))
+        report.append(hours)
+        report.append(minutes)
 
-    def parse_train_number(self, train_number):
+        return report
 
+    def _get_railway_file(self, railway, action):
+        # This only processes railways <=19!
+        if action == 'prijede':
+            return os.path.join("numbers", "arrive_railway", railway + ".ogg")
+        elif action == 'odjede':
+            return os.path.join("numbers", "leave_railway", railway + ".ogg")
+        else:
+            return os.path.join("numbers", "railway", railway + ".ogg")
+
+    def _prijede(self, train_set):
+        report = []
+
+        # pravidelny prijezd 22 hodiny 23 minuty
+        if (train_set.arrival_time != '') and self.soundset.time:
+            report += _get_time(train_set, "prijede")
+
+        report.append(os.path.join("parts", "prijede.ogg"))
+        report.append(os.path.join("parts", "na_kolej.ogg"))
+        report.append(self._get_railway_file(train_set.railway, 'prijede'))
+
+        if self.area not in train_set.final_station:
+            report.append(os.path.join("parts", "vlak_dale_pokracuje_ve_smeru.ogg"))
+            report.append(os.path.join("stations", train_set.final_station))
+        else:
+            report.append(os.path.join("parts", "vlak_zde_jizdu_konci.ogg"))
+            report.append(os.path.join("parts", "prosime_cestujici_aby_vystoupili.ogg"))
+
+        return report
+
+    def _odjede(self, train_set):
+        report = []
+        report.append(os.path.join("parts", "ve_smeru.ogg"))
+        report.append(os.path.join("stations", train_set.final_station))
+
+        if (train_set.departure_time != '') and (self.soundset.time):
+            report += _get_time(train_set, "odjede")
+
+        report.append(os.path.join("parts", "odjede.ogg"))
+        report.append(os.path.join("parts", "z_koleje.ogg"))
+
+        report.append(train_set.railway)
+
+        return report
+
+    def _projede(self, train_set):
+        raise UnknownMessageError(Exception)
+
+    def _parse_train_number(self, train_number):
         train_number_len = len(train_number)
         logging.debug("Train number: ".format(train_number))
 

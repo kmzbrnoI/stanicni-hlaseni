@@ -7,9 +7,9 @@ import socket
 import time
 from collections import deque
 from os import path
+import traceback
 
 import message_parser
-import process_report
 import report_manager
 import system_functions
 
@@ -29,11 +29,7 @@ class OutdatedVersionError(Exception):
 class TCPConnectionManager:
     def __init__(self, ip, port, device_info):
         self.device_info = device_info
-        self.rm = report_manager.ReportManager(
-            self.device_info.soundset,
-            self.device_info.soundset_path,
-            self.device_info.area
-        )
+        self.rm = report_manager.ReportManager(self.device_info)
 
         self._connect(ip, port)
         self._send('-;HELLO;1.0')
@@ -61,13 +57,13 @@ class TCPConnectionManager:
                         try:
                             self._process_message(item.strip())
                         except Exception as e:
-                            logging.warning("Mesasge processing error: "
-                                            "{0}!".format(str(e)))
+                            logging.warning("Message processing error: "
+                                            "{0}!".format(str(e)) + '\n' + traceback.print_exc())
                     else:
                         previous = item
 
                 if self.gong_played:
-                    self.rm.create_report([os.path.join("gong", "gong_end.ogg")])
+                    self.rm.play_raw_report([os.path.join("gong", "gong_end.ogg")])
 
         except Exception as e:
             logging.error("Connection error: {0}".format(e))
@@ -91,7 +87,7 @@ class TCPConnectionManager:
         if parsed[1] == 'HELLO':
             self._process_hello(parsed)
             self._send(self.device_info.area + ";SH;REGISTER;" +
-                      self.rm.sound_set + ";1.0")
+                      self.rm.soundset.name + ";1.0")
 
         if parsed[1] != 'SH':
             return
@@ -113,14 +109,14 @@ class TCPConnectionManager:
             elif parsed[3] == "POSUN":
                 process_report.posun(self.rm)
         elif parsed[2] == "PRIJEDE" or parsed[2] == "ODJEDE" or parsed[2] == "PROJEDE":
-            if not self.gong_played:
-                self.rm.create_report([
+            if not self.gong_played and self.rm.soundset.play_gong:
+                self.rm.play_raw_report([
                     os.path.join("gong", "gong_start.ogg"),
                     os.path.join("salutation", "vazeni_cestujici.ogg")
                 ])
                 self.gong_played = True
 
-            process_report.process_message(message, self.rm)
+            self.rm.process_trainset_message(parsed)
 
     def _process_hello(self, parsed):
         version = float(parsed[2])
