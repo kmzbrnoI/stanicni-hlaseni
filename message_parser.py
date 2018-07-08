@@ -1,34 +1,34 @@
+"""
+This file is a parser helper. It allows parsing data from server.
+"""
+
 def parse(data, separators):
+    """
+    This function parses string into list of strings based on 'separators'.
+    It follows hJOPserver`s PanelServer messages format.
+    """
     output = []
     item = ''
     escaped_level = 0
 
-    separators = [';', '[', ']']
-
-    for i in range(len(data)):
-        active = data[i]
-
-        if active == '{':
-
+    for c in data:
+        if c == '{':
             if escaped_level > 0:
-                item += active
+                item += c
             escaped_level += 1
 
-        elif (active == '}') and (escaped_level > 0):
+        elif (c == '}') and (escaped_level > 0):
             escaped_level -= 1
             if escaped_level > 0:
-                item += active
+                item += c
         else:
-
-            if (active in separators) and (escaped_level == 0):
-
+            if (c in separators) and (escaped_level == 0):
                 output.append(item)
                 item = ''
 
             else:
-
-                if (active not in separators) or (escaped_level > 0):
-                    item += active
+                if (c not in separators) or (escaped_level > 0):
+                    item += c
 
     if item != "":
         output.append(item)
