@@ -184,7 +184,7 @@ class TCPConnectionManager:
         try:
             ro = soundset_manager.is_ro(self.device_info.soundset_path)
             if ro:
-                soundset_manager.remount_rw()
+                soundset_manager.remount_rw(self.device_info.soundset_path)
 
             soundset_manager.sync(
                 server=self.device_info.smb_server,
@@ -208,14 +208,14 @@ class TCPConnectionManager:
                        ";" + str(e))
         finally:
             if ro:
-                soundset_manager.remount_ro()
+                soundset_manager.remount_ro(self.device_info.soundset_path)
 
     def _process_change_set(self, parsed):
         ro = False
         try:
             ro = soundset_manager.is_ro(self.device_info.soundset_path)
             if ro:
-                soundset_manager.remount_rw()
+                soundset_manager.remount_rw(self.device_info.soundset_path)
 
             soundset_manager.change_set(
                 soundset=parsed[3],
@@ -239,4 +239,4 @@ class TCPConnectionManager:
             self._send(self.device_info.area + ";SH;CHANGE-SET;ERR;" + str(e))
         finally:
             if ro:
-                soundset_manager.remount_ro()
+                soundset_manager.remount_ro(self.device_info.soundset_path)
