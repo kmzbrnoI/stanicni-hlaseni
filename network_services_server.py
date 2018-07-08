@@ -12,11 +12,13 @@ def get_example_message(x):
         return input() + '\n'
 
     return {
-        1: 'Ku;SH;PRIJEDE;{501520;MOs;2;Br;Ku;;}',
-        2: 'Ku;SH;ODJEDE;{504220;Os;2;Bs;Zd;;}',
-        3: 'Ku;SH;SPEC;[NESAHAT]',
+        1: 'Ku;SH;PRIJEDE;{501520;MOs;2;Br;Ku;9:22;9:26}',
+        2: 'Ku;SH;ODJEDE;{504220;Os;2;Bs;Zd;13:15;12:01}',
+        3: 'Ku;SH;SPEC;NESAHAT',
         4: 'Ku;SH;CHANGE-SET;{Veronika}',
-        5: "PING;"
+        5: "PING;",
+        6: 'Klb;SH;SYNC',
+        7: 'Klb;SH;SETS-LIST',
     }.get(x) + '\n'
 
 
@@ -56,7 +58,8 @@ def tcp_listener():
     while True:
         try:
             print("Zadejte typ zpravy k odeslani:\n"
-                  "0 : VLASTNI ZPRAVA\n1 : PRIJEDE\n2 : ODJEDE\n3 : NESAHAT")
+                  "0 : VLASTNI ZPRAVA\n1 : PRIJEDE\n2 : ODJEDE\n3 : NESAHAT\n"
+                  "6 : SYNC\n7 : SETS-LIST")
             message_type = input()
             message = get_example_message(int(message_type))
             print("Sending:", message)
