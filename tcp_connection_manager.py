@@ -1,5 +1,8 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+"""
+This file defined TCPConnectionManager class which handles TCP communication
+with hJOPserver. It creates instance of ReportManager in __init___ and calls
+its methods based on received data.
+"""
 
 import logging
 import os

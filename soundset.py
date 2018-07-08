@@ -1,3 +1,9 @@
+"""
+This file defines SoundSet class which represents a single soundset.
+Beware that single soundset includes all parent soundsets in a certain way.
+It remeberes whole soundset hierarchy and allows finding sound files in it.
+"""
+
 import logging
 import os
 from configparser import ConfigParser

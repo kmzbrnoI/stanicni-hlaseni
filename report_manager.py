@@ -1,5 +1,6 @@
 """
-This file cares about finding proper sounds to announcement.
+This file defines ReportManager which cares about building announcement based
+on data received from hJOPserver.
 """
 
 import logging

@@ -1,3 +1,8 @@
+"""
+This file defined TrainSet class which represents train set received from
+hJOPserver.
+"""
+
 import message_parser
 
 

@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
 
+"""
+This files allows for discovering hJOPserver via its UDP Discover server.
+It can be run either as a Python module or as a script.
+"""
+
 import logging
 import socket
 import time
@@ -56,7 +61,6 @@ def find_server(name: str) -> ServerInfo:
     Finds server with name 'name', returns instance of ServerInfo or
     ServerNotFoundError when server was not found.
     """
-
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
