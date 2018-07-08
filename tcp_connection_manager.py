@@ -180,6 +180,7 @@ class TCPConnectionManager:
             self._send(self.device_info.area + ";SH;SYNC;ERR;;Samba není nakonfigurována!")
             return
 
+        ro = False
         try:
             ro = soundset_manager.is_ro(self.device_info.soundset_path)
             if ro:
@@ -195,9 +196,6 @@ class TCPConnectionManager:
                 self.device_info.soundset_path, self.device_info.soundset
             )
 
-            if ro:
-                soundset_manager.remount_ro()
-
             self._send(self.device_info.area + ";SH;SYNC;DONE;" +
                        self.device_info.soundset + ";")
         except Exception as e:
@@ -208,8 +206,12 @@ class TCPConnectionManager:
 
             self._send(self.device_info.area + ";SH;SYNC;ERR;" +
                        ";" + str(e))
+        finally:
+            if ro:
+                soundset_manager.remount_ro()
 
     def _process_change_set(self, parsed):
+        ro = False
         try:
             ro = soundset_manager.is_ro(self.device_info.soundset_path)
             if ro:
@@ -227,9 +229,6 @@ class TCPConnectionManager:
             self.device_info.soundset = parsed[3]
             self.device_info.store(device_info.GLOBAL_CONFIG_FILENAME)
 
-            if ro:
-                soundset_manager.remount_ro()
-
             self._send(self.device_info.area + ";SH;CHANGE-SET;OK;")
         except Exception as e:
             # DEBUG:
@@ -238,3 +237,6 @@ class TCPConnectionManager:
             traceback.print_exc()
 
             self._send(self.device_info.area + ";SH;CHANGE-SET;ERR;" + str(e))
+        finally:
+            if ro:
+                soundset_manager.remount_ro()
