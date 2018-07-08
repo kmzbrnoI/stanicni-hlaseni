@@ -236,3 +236,25 @@ class TCPConnectionManager:
             info_message = self.device_info.area + ";SH;CHANGE-SET;ERR;SET_NOT_AVAILABLE"
 
         self._send(info_message)
+
+    def _list_samba(server_ip, home_folder):
+        process = Popen(['./list_samba.sh', server_ip, home_folder], stdout=PIPE, stderr=PIPE)
+        output, err = process.communicate()
+        sound_sets = output.decode('utf-8').splitlines()[2:]  # . .. Veronika, Zbynek, Ivona
+
+        return sound_sets
+
+
+    def _download_sound_files_samba(server_ip, home_folder, sound_set):
+        try:
+            logging.info("Downloading {0}...".format(sound_set))
+            process = Popen(['./download_sound_set.sh', server_ip, home_folder, sound_set], stdout=PIPE, stderr=PIPE)
+            output, error = process.communicate(timeout=60)
+
+            return process.returncode, output, error
+
+        except subprocess.TimeoutExpired:
+            return 1, "timeout", "timeout"
+
+
+

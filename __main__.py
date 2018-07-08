@@ -8,7 +8,7 @@ import logging
 import os
 import time
 
-import system_functions
+from device_info import DeviceInfo
 import tcp_connection_manager
 import udp_discover
 
@@ -24,7 +24,7 @@ def get_logging_level(verbosity):
 
 
 def main():
-    device_info = system_functions.DeviceInfo()
+    device_info = DeviceInfo()
 
     logging.basicConfig(
         level=get_logging_level(device_info.verbosity),
