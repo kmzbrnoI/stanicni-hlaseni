@@ -21,6 +21,10 @@ class SambaNotConfiguredError(Exception):
     pass
 
 
+class RemountErorr(Exception):
+    pass
+
+
 def sync(server, home_folder, soundset, soundset_path):
     """
     Downloads current soundset from samba server and all parent soundsets too.
@@ -29,9 +33,9 @@ def sync(server, home_folder, soundset, soundset_path):
     loaded = []
 
     while current:
-        logging.debug("Downloading {0}...".format(current))
+        logging.info("Downloading {0}...".format(current))
         _download_sound_set(server, home_folder, current, soundset_path)
-        logging.debug("{0} downloaded succesfully.".format(current))
+        logging.info("{0} downloaded succesfully.".format(current))
 
         fn = os.path.join(soundset_path, current, ss.DEFAULT_CONFIG_FILENAME)
         if not os.path.isfile(fn):
@@ -90,3 +94,32 @@ def _download_sound_set(server_ip, home_folder, sound_set, soundset_path):
     if process.returncode != 0:
         raise DownloadError('Download error: '
                             '{0}'.format(stderr.decode('utf-8')))
+
+
+def is_ro(path):
+    stat = os.statvfs(path)
+    return bool(stat.f_flag & os.ST_RDONLY)
+
+
+def _remount(path, mode):
+    logging.info('Remounting {0}...'.format(mode))
+
+    process = subprocess.Popen(
+        [os.path.abspath(mode + '.sh')],
+        cwd=path,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+    )
+    stdout, stderr = process.communicate(timeout=60)
+
+    if process.returncode != 0:
+        raise RemountError('Remount RO error: '
+                           '{0}'.format(stderr.decode('utf-8')))
+
+
+def remount_ro(path):
+    _remount(path, 'ro')
+
+
+def remount_rw():
+    _remount(path, 'rw')

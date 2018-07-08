@@ -181,7 +181,9 @@ class TCPConnectionManager:
             return
 
         try:
-            # TODO: remount
+            ro = soundset_manager.is_ro(self.device_info.soundset_path)
+            if ro:
+                soundset_manager.remount_rw()
 
             soundset_manager.sync(
                 server=self.device_info.smb_server,
@@ -192,6 +194,10 @@ class TCPConnectionManager:
             self.rm.soundset = SoundSet(
                 self.device_info.soundset_path, self.device_info.soundset
             )
+
+            if ro:
+                soundset_manager.remount_ro()
+
             self._send(self.device_info.area + ";SH;SYNC;DONE;" +
                        self.device_info.soundset + ";")
         except Exception as e:
@@ -205,7 +211,9 @@ class TCPConnectionManager:
 
     def _process_change_set(self, parsed):
         try:
-            # TODO: remount
+            ro = soundset_manager.is_ro(self.device_info.soundset_path)
+            if ro:
+                soundset_manager.remount_rw()
 
             soundset_manager.change_set(
                 soundset=parsed[3],
@@ -218,6 +226,10 @@ class TCPConnectionManager:
             )
             self.device_info.soundset = parsed[3]
             self.device_info.store(device_info.GLOBAL_CONFIG_FILENAME)
+
+            if ro:
+                soundset_manager.remount_ro()
+
             self._send(self.device_info.area + ";SH;CHANGE-SET;OK;")
         except Exception as e:
             # DEBUG:
