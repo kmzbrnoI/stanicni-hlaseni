@@ -29,6 +29,8 @@ def tcp_listener():
 
     print("Nasloucham na portu:", port)
 
+    udp_broadcast("hJOP;1.0;server;hJOPserver;" + get_ip() + ";5896;on;modulovka TT")
+
     clientsocket, addr = serversocket.accept()
     print("Navazano spojeni {0}".format(addr))
 
@@ -96,5 +98,4 @@ def get_ip():
     return ip
 
 udp_listener()
-udp_broadcast("hJOP;1.0;server;server H0;" + get_ip() + ";5896;on;hJOPEmulator")
 tcp_listener()
