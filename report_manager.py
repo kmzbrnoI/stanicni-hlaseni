@@ -56,7 +56,8 @@ class ReportManager:
 
         elif special_type == 'NESAHAT':
             self.play_raw_report([
-                os.path.join("spec", "nedotykejte_se_prosim_vystavenych_modelu")
+                os.path.join("salutation_end", "vazeni_navstevnici"),
+                os.path.join("spec", "nedotykejte_se_prosim_vystavenych_modelu"),
             ])
 
         else:
