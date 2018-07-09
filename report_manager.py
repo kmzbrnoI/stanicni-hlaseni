@@ -49,7 +49,9 @@ class ReportManager:
         if special_type == 'POSUN':
             self.play_raw_report([
                 os.path.join("spec", "prosim_pozor"),
-                os.path.join("spec", "probiha_posun")
+                os.path.join("spec", "nevstupujte_prosim_do_kolejiste"),
+                os.path.join("parts", "pause"),
+                os.path.join("spec", "probiha_posun"),
             ])
 
         elif special_type == 'NESAHAT':
@@ -79,6 +81,7 @@ class ReportManager:
         report.append(os.path.join("numbers", "railway_end", train_set.railway))
 
         if train_set.departure_time and self.soundset.time:
+            report.append(os.path.join("parts", "pause"))
             report.append(os.path.join("parts", "pravidelny_odjezd"))
             report += self._get_time(train_set.departure_time, end=True)
 
