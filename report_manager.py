@@ -70,19 +70,17 @@ class ReportManager:
             report.append(os.path.join("parts", "ze_smeru"))
             report.append(os.path.join("stations", train_set.start_station))
 
+        if train_set.final_station:
+            report.append(os.path.join("parts", "ve_smeru"))
+            report.append(os.path.join("stations", train_set.final_station))
+
         report.append(os.path.join("parts", "prijede"))
         report.append(os.path.join("parts", "na_kolej"))
-        report.append(self._get_railway_file(train_set.railway, 'prijede'))
+        report.append(os.path.join("numbers", "railway_end", train_set.railway))
 
-        if self.area == train_set.final_station:
-            report.append(os.path.join("parts", "vlak_zde_jizdu_konci"))
-            report.append(os.path.join("parts", "prosime_cestujici_aby_vystoupili"))
-        else:
-            report.append(os.path.join("parts", "vlak_dale_pokracuje_ve_smeru"))
-            report.append(os.path.join("stations", train_set.final_station))
-            if train_set.departure_time and self.soundset.time:
-                report.append(os.path.join("parts", "pravidelny_odjezd"))
-                report += self._get_time(train_set.departure_time)
+        if train_set.departure_time and self.soundset.time:
+            report.append(os.path.join("parts", "pravidelny_odjezd"))
+            report += self._get_time(train_set.departure_time, end=True)
 
         return report
 
@@ -100,7 +98,7 @@ class ReportManager:
         report.append(os.path.join("parts", "odjede"))
         report.append(os.path.join("parts", "z_koleje"))
 
-        report.append(self._get_railway_file(train_set.railway, 'odjede'))
+        report.append(os.path.join("numbers", "leave_railway", train_set.railway))
 
         return report
 
@@ -111,14 +109,14 @@ class ReportManager:
         if self.soundset.train_num:
             return os.path.join("trainType", train_type + "_cislo")
         else:
-            return os.path.join("trainType", train_type + "")
+            return os.path.join("trainType", train_type)
 
     @staticmethod
     def add_suffix(report):
         return map(lambda s: s + '.ogg', report)
 
     @staticmethod
-    def _get_time(time):
+    def _get_time(time, end=False):
         """
         Converts time to list of sounds.
         Example of time: '9:46'.
@@ -127,18 +125,9 @@ class ReportManager:
 
         return [
             os.path.join("time", "hours", hours.lstrip("0")),
-            os.path.join("time", "minutes", minutes.lstrip("0"))
+            os.path.join("time", "minutes" +
+                         ('_end' if end else ''), minutes.lstrip("0"))
         ]
-
-    @staticmethod
-    def _get_railway_file(railway, action):
-        # This only processes railways <=19!
-        if action == 'prijede':
-            return os.path.join("numbers", "arrive_railway", railway + "")
-        elif action == 'odjede':
-            return os.path.join("numbers", "leave_railway", railway + "")
-        else:
-            return os.path.join("numbers", "railway", railway + "")
 
     def _parse_train_number(self, train_number):
         train_number_len = len(train_number)
