@@ -28,7 +28,7 @@ class ReportManager:
         # Prepare common part of announcement
         report = []
         if self.soundset.salutation:
-            report.append(os.path.join("salutation", "prosim_pozor"))
+            report.append(os.path.join("salutation", "vazeni_cestujici"))
         report.append(self._get_traintype_file(train_set.train_type))
 
         if self.soundset.train_num and train_set.train_number:

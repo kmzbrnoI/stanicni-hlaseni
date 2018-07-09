@@ -118,7 +118,6 @@ class TCPConnectionManager:
             if not self.gong_played and self.rm.soundset.play_gong:
                 self.rm.play_raw_report([
                     os.path.join("gong", "gong_start"),
-                    os.path.join("salutation", "vazeni_cestujici")
                 ])
                 self.gong_played = True
 
