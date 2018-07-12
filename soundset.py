@@ -37,6 +37,7 @@ class SoundSet:
         self.hierarchy = self.load_hierarchy(root, setname)
 
     def load_sound_config(self, parser):
+        """Loads config of a single file in a hierarchy."""
         try:
             if self.name is None:
                 self.name = parser.sections()[0]
@@ -54,6 +55,10 @@ class SoundSet:
                                            "{0}!".format(str(e)))
 
     def load_hierarchy(self, root, soundset):
+        """
+        Loads config baased of all config files in hierarchy. Returns list
+        of names of soundsets in hierachy from children to parents.
+        """
         result = []
         current = soundset
 
@@ -100,9 +105,8 @@ class SoundSet:
 
         return result
 
-
     def print_sound_config(self):
-        # funkce pouze pro správné otestování funkčnosti
+        """Debug function."""
         logging.debug("Name: {0}".format(self.name))
         logging.debug("Gong: {0}".format(self.play_gong))
         logging.debug("Salutation: {0}".format(self.salutation))
