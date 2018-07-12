@@ -2,6 +2,10 @@
 This file defines SoundSet class which represents a single soundset.
 Beware that single soundset includes all parent soundsets in a certain way.
 It remeberes whole soundset hierarchy and allows finding sound files in it.
+
+Configuration of a sound set is based on configurations of parent sound sets
+too. Confugration in childrens always overwrites configuration in a parent.  If
+no configuration is defined, the value of parameter is 'None'.
 """
 
 import logging
@@ -23,31 +27,33 @@ class ConfigFileBadFormatError(Exception):
 class SoundSet:
     def __init__(self, root, setname):
         self.root = root
-        self.load_sound_config(os.path.join(root, setname, DEFAULT_CONFIG_FILENAME))
-        logging.info("Soundset loaded from {0}.".format(
-            os.path.join(root, setname, DEFAULT_CONFIG_FILENAME)
-        ))
-        self.hierarchy = self.get_hierarchy(root, self.name)
 
-    def load_sound_config(self, filename):
-        parser = ConfigParser()
-        if not os.path.isfile(filename):
-            raise ConfigFileNotFoundError("Config file not found: "
-                                          "{0}!".format(file_path))
-        parser.read(filename)
+        self.name = None
+        self.play_gong = None
+        self.salutation = None
+        self.train_num = None
+        self.time = None
 
+        self.hierarchy = self.load_hierarchy(root, setname)
+
+    def load_sound_config(self, parser):
         try:
-            self.name = parser.sections()[0]
-            self.parent_sound_set = parser[self.name]['base']
-            self.play_gong = parser.getboolean("sound", "gong")
-            self.salutation = parser.getboolean('sound', 'salutation')
-            self.train_num = parser.getboolean('sound', 'trainNum')
-            self.time = parser.getboolean('sound', 'time')
+            if self.name is None:
+                self.name = parser.sections()[0]
+
+            if self.play_gong is None and parser.has_option("sound", "gong"):
+                self.play_gong = parser.getboolean("sound", "gong")
+            if self.salutation is None and parser.has_option("sound", "salutation"):
+                self.salutation = parser.getboolean('sound', 'salutation')
+            if self.train_num is None and parser.has_option("sound", "trainNum"):
+                self.train_num = parser.getboolean('sound', 'trainNum')
+            if self.time is None and parser.has_option("sound", "time"):
+                self.time = parser.getboolean('sound', 'time')
         except Exception as e:
             raise ConfigFileBadFormatError("Bad format of config file:"
                                            "{0}!".format(str(e)))
 
-    def get_hierarchy(self, root, soundset):
+    def load_hierarchy(self, root, soundset):
         result = []
         current = soundset
 
@@ -64,7 +70,12 @@ class SoundSet:
             try:
                 parser = ConfigParser()
                 parser.read(filename)
-                current = parser[current]['base']
+                self.load_sound_config(parser)
+
+                if parser.has_option(current, 'base'):
+                    current = parser[current]['base']
+                else:
+                    current = None
             except Exception as e:
                 raise ConfigFileBadFormatError("Bad format of config file:"
                                                "{0}!".format(str(e)))
@@ -92,9 +103,8 @@ class SoundSet:
 
     def print_sound_config(self):
         # funkce pouze pro správné otestování funkčnosti
-        logging.debug("Sound set: ".format(self.sound_set))
-        logging.debug("Parent sound set: ".format(self.parent_sound_set))
-        logging.debug("Gong: ".format(self.play_gong))
-        logging.debug("Salutation: ".format(self.salutation))
-        logging.debug("Train number: ".format(self.train_num))
-        logging.debug("Time: ".format(self.time))
+        logging.debug("Name: {0}".format(self.name))
+        logging.debug("Gong: {0}".format(self.play_gong))
+        logging.debug("Salutation: {0}".format(self.salutation))
+        logging.debug("Train number: {0}".format(self.train_num))
+        logging.debug("Time: {0}".format(self.time))
