@@ -30,3 +30,5 @@ def _play_report(sound_sequence):
         channel = s.play()
         while channel.get_busy():
             clock.tick(10)
+
+    pygame.mixer.quit()
