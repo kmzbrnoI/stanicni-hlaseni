@@ -12,10 +12,10 @@ def get_example_message(x):
         return input() + '\n'
 
     return {
-        1: 'Ku;SH;PRIJEDE;{501520;MOs;2;Br;Ku;9:22;9:26}',
-        2: 'Ku;SH;ODJEDE;{504220;Os;2;Bs;Zd;13:15;12:01}',
-        3: 'Ku;SH;SPEC;NESAHAT',
-        4: 'Ku;SH;CHANGE-SET;{Veronika}',
+        1: 'Klb;SH;PRIJEDE;{501520;MOs;2;Br;Ku;9:22;9:26}',
+        2: 'Klb;SH;ODJEDE;{504220;Os;2;Bs;Zd;13:15;12:01}',
+        3: 'Klb;SH;SPEC;NESAHAT',
+        4: 'Klb;SH;CHANGE-SET;{Veronika}',
         5: "PING;",
         6: 'Klb;SH;SYNC',
         7: 'Klb;SH;SETS-LIST',
