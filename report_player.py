@@ -20,7 +20,6 @@ def play_report(report):
 
 
 def _play_report(sound_sequence):
-    pygame.mixer.pre_init(44100, -16, 1, 512)
     pygame.mixer.init()
 
     clock = pygame.time.Clock()
