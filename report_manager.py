@@ -35,6 +35,8 @@ class ReportManager:
             report += self._parse_train_number(train_set.train_number)
 
         if message_type == "prijede":
+            if train_set.final_station == self.area:
+                return  # do not play 'arrives' in final station
             report += self._prijede(train_set)
         elif message_type == "odjede":
             report += self._odjede(train_set)
