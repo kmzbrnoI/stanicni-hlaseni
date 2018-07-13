@@ -4,6 +4,7 @@ This file defines low-level functions for palying sound.
 
 import os
 import pygame.mixer
+import time
 
 
 class FileNotFoundError(Exception):
@@ -22,12 +23,15 @@ def play_report(report):
 def _play_report(sound_sequence):
     pygame.mixer.init()
 
-    clock = pygame.time.Clock()
     sounds = [pygame.mixer.Sound(f) for f in sound_sequence]
-    for s in sounds:
-        s.play()
-        channel = s.play()
-        while channel.get_busy():
-            clock.tick(10)
+    if len(sounds) > 0:
+        channel = sounds[0].play()
+    for s in sounds[1:]:
+        channel.queue(s)
+        while channel.get_queue() is not None:
+            time.sleep(0.01)
+
+    while channel.get_busy():
+        time.sleep(0.01)
 
     pygame.mixer.quit()
