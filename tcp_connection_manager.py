@@ -51,8 +51,10 @@ class TCPConnectionManager:
             while self.socket:
                 recv = previous + \
                        self.socket.recv(2048).decode('utf-8').replace('\r', '')
+                previous = ''
 
                 if '\n' not in recv:
+                    previous = recv
                     continue
 
                 q = deque(recv.splitlines(keepends=True))
