@@ -112,16 +112,18 @@ class TCPConnectionManager:
             self._process_change_set(parsed)
         elif parsed[2] == "SETS-LIST":
             self._process_sets_list()
-        elif parsed[2] == "SPEC":
-            self.rm.process_spec_message(parsed[3].upper())
-        elif parsed[2] == "PRIJEDE" or parsed[2] == "ODJEDE" or parsed[2] == "PROJEDE":
+        elif parsed[2] == "PRIJEDE" or parsed[2] == "ODJEDE" \
+             or parsed[2] == "PROJEDE" or parsed[2] == "SPEC":
             if not self.gong_played and self.rm.soundset.play_gong:
                 self.rm.play_raw_report([
                     os.path.join("gong", "gong_start"),
                 ])
                 self.gong_played = True
 
-            self.rm.process_trainset_message(parsed)
+            if parsed[2] == "SPEC":
+                self.rm.process_spec_message(parsed[3].upper())
+            else:
+                self.rm.process_trainset_message(parsed)
 
     def _process_hello(self, parsed):
         version = float(parsed[2])
