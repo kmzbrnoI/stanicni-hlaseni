@@ -11,6 +11,7 @@ import time
 from collections import deque
 from os import path
 import traceback
+import select
 
 import message_parser
 import report_manager
@@ -39,6 +40,7 @@ class TCPConnectionManager:
     def __init__(self, ip, port, device_info):
         self.device_info = device_info
         self.rm = report_manager.ReportManager(self.device_info)
+        self.gong_played = False
 
         self._connect(ip, port)
         self._send('-;HELLO;1.0')
@@ -54,11 +56,15 @@ class TCPConnectionManager:
                 previous = ''
 
                 if '\n' not in recv:
+                    if self.gong_played:
+                        self.rm.play_raw_report(
+                            [os.path.join("gong", "gong_end")]
+                        )
+                    self.gong_played = False
                     previous = recv
                     continue
 
                 q = deque(recv.splitlines(keepends=True))
-                self.gong_played = False
 
                 while q:
                     item = q.popleft()
@@ -74,8 +80,11 @@ class TCPConnectionManager:
                     else:
                         previous = item
 
-                if self.gong_played:
+                # Play gong if no data at input
+                readable, _, _ = select.select([self.socket], [], [], 0)
+                if not readable and self.gong_played:
                     self.rm.play_raw_report([os.path.join("gong", "gong_end")])
+                    self.gong_played = False
 
         except Exception as e:
             logging.error("Connection error: {0}".format(e))
