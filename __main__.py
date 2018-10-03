@@ -52,6 +52,9 @@ def main():
             logging.critical("Outdated version of server!")
             break
 
+        except tcp_connection_manager.DisconnectedError:
+            logging.error("Disconnected from server!")
+
         time.sleep(1)
 
 

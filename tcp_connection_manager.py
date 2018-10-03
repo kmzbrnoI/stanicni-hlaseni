@@ -35,6 +35,9 @@ class OutdatedVersionError(Exception):
 class SambaNotDefined(Exception):
     pass
 
+class DisconnectedError(Exception):
+    pass
+
 
 class TCPConnectionManager:
     def __init__(self, ip, port, device_info):
@@ -51,8 +54,11 @@ class TCPConnectionManager:
 
         try:
             while self.socket:
-                recv = previous + \
-                       self.socket.recv(2048).decode('utf-8').replace('\r', '')
+                data = self.socket.recv(2048)
+                if not data:
+                    raise DisconnectedError("Disconnected from server!")
+
+                recv = previous + data.decode('utf-8').replace('\r', '')
                 previous = ''
 
                 if '\n' not in recv:
