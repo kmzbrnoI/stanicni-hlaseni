@@ -65,6 +65,16 @@ trainNum=yes
 time=no
 ```
 
+## Virtualenv
+
+Cheatsheet:
+
+```bash
+$ virtualenv -p python3 sh-venv
+$ source sh-venv/bin/activate
+$ pip3 install -r requirements.txt
+```
+
 ## Contributors
 
 This application was developed by Petr Repa as a bachelor thesis at Mendel
