@@ -84,7 +84,12 @@ def change_set(soundset, soundset_path, server, home_folder):
 
 def _download_sound_set(server_ip, home_folder, sound_set, soundset_path):
     process = subprocess.Popen(
-        [os.path.abspath('download_sound_set.sh'), server_ip, home_folder, sound_set],
+        [
+            os.path.abspath('download_sound_set.sh'),
+            server_ip,
+            home_folder,
+            sound_set
+        ],
         cwd=soundset_path,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,

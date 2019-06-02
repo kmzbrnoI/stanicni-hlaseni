@@ -44,9 +44,11 @@ class SoundSet:
 
             if self.play_gong is None and parser.has_option("sound", "gong"):
                 self.play_gong = parser.getboolean("sound", "gong")
-            if self.salutation is None and parser.has_option("sound", "salutation"):
+            if (self.salutation is None and
+                    parser.has_option("sound", "salutation")):
                 self.salutation = parser.getboolean('sound', 'salutation')
-            if self.train_num is None and parser.has_option("sound", "trainNum"):
+            if (self.train_num is None and
+                    parser.has_option("sound", "trainNum")):
                 self.train_num = parser.getboolean('sound', 'trainNum')
             if self.time is None and parser.has_option("sound", "time"):
                 self.time = parser.getboolean('sound', 'time')
@@ -64,7 +66,8 @@ class SoundSet:
 
         while current and current not in result:
             result.append(current)
-            filename = os.path.join(self.root, current, DEFAULT_CONFIG_FILENAME)
+            filename = os.path.join(self.root, current,
+                                    DEFAULT_CONFIG_FILENAME)
 
             logging.info("Reading {0}...".format(filename))
 

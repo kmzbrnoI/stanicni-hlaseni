@@ -2,6 +2,7 @@
 This file is a parser helper. It allows parsing data from server.
 """
 
+
 def parse(data, separators):
     """
     This function parses string into list of strings based on 'separators'.

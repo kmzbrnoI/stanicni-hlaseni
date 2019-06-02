@@ -19,7 +19,9 @@ class ReportManager:
 
     def __init__(self, device_info):
         self.area = device_info.area
-        self.soundset = SoundSet(device_info.soundset_path, device_info.soundset)
+        self.soundset = SoundSet(
+            device_info.soundset_path, device_info.soundset
+        )
 
     def process_trainset_message(self, parsed):
         message_type = parsed[2].lower()
@@ -43,9 +45,13 @@ class ReportManager:
         elif message_type == "projede":
             report += self._projede(train_set)
         else:
-            raise UnknownMessageTypeError("This type of announcement is not supported!")
+            raise UnknownMessageTypeError(
+                "This type of announcement is not supported!"
+            )
 
-        report_player.play_report(self.soundset.assign(self.add_suffix(report)))
+        report_player.play_report(
+            self.soundset.assign(self.add_suffix(report))
+        )
 
     def process_spec_message(self, special_type):
         if special_type == 'POSUN':
@@ -59,14 +65,17 @@ class ReportManager:
         elif special_type == 'NESAHAT':
             self.play_raw_report([
                 os.path.join("salutation_end", "vazeni_navstevnici"),
-                os.path.join("spec", "nedotykejte_se_prosim_vystavenych_modelu"),
+                os.path.join("spec",
+                             "nedotykejte_se_prosim_vystavenych_modelu"),
             ])
 
         else:
             self.play_raw_report([os.path.join("spec", special_type)])
 
     def play_raw_report(self, report):
-        report_player.play_report(self.soundset.assign(self.add_suffix(report)))
+        report_player.play_report(
+            self.soundset.assign(self.add_suffix(report))
+        )
 
     def _prijede(self, train_set):
         report = []
@@ -81,7 +90,8 @@ class ReportManager:
 
         report.append(os.path.join("parts", "prijede"))
         report.append(os.path.join("parts", "na_kolej"))
-        report.append(os.path.join("numbers", "railway_end", train_set.railway))
+        report.append(os.path.join("numbers", "railway_end",
+                                   train_set.railway))
 
         if train_set.departure_time and self.soundset.time:
             report.append(os.path.join("parts", "pause"))
@@ -104,7 +114,8 @@ class ReportManager:
         report.append(os.path.join("parts", "odjede"))
         report.append(os.path.join("parts", "z_koleje"))
 
-        report.append(os.path.join("numbers", "leave_railway", train_set.railway))
+        report.append(os.path.join("numbers", "leave_railway",
+                                   train_set.railway))
 
         return report
 
@@ -181,19 +192,18 @@ class ReportManager:
         """
         sound_set = []
 
-        for position, character in enumerate(reversed(number)):  # jdu od jednotek, abych synchronizoval pozici a číslo
-            # pouze pro pro hodnoty 10, 11, 12...
+        for position, character in enumerate(reversed(number)):
             if (position == 1) and (character == "1"):
                 first_char = sound_set[0]
                 sound_set[0] = '1' + first_char
             else:
-                data = character + ('0' * position)  # vytisknu číslo + počet nul
+                data = character + ('0' * position)
                 sound_set.append(data)
 
         output_list = []
 
-        for sound in reversed(sound_set):  # nakonec ještě nahrávky vytisknu v opačném pořadí pro správné seřazení
-            if int(sound) != 0:  # přetypuji na integer pokud znak není nula, připojím do seznamu
+        for sound in reversed(sound_set):
+            if int(sound) != 0:
                 output_list.append(sound)
 
         return output_list

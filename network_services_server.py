@@ -36,7 +36,9 @@ def tcp_listener():
 
     print("Nasloucham na portu:", port)
 
-    udp_broadcast("hJOP;1.0;server;hJOPserver;" + get_ip() + ";5896;on;modulovka TT")
+    udp_broadcast(
+        "hJOP;1.0;server;hJOPserver;" + get_ip() + ";5896;on;modulovka TT"
+    )
 
     clientsocket, addr = serversocket.accept()
     print("Navazano spojeni {0}".format(addr))
@@ -98,6 +100,7 @@ def udp_broadcast(data):
     data_to_send = data.encode('utf-8')
     brd_socket.sendto(data_to_send, ('<broadcast>', 5880))
 
+
 def get_ip():
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.connect(("8.8.8.8", 80))
@@ -105,5 +108,7 @@ def get_ip():
     s.close()
     return ip
 
-udp_listener()
-tcp_listener()
+
+if __name__ == '__main__':
+    udp_listener()
+    tcp_listener()

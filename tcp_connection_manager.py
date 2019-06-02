@@ -35,6 +35,7 @@ class OutdatedVersionError(Exception):
 class SambaNotDefined(Exception):
     pass
 
+
 class DisconnectedError(Exception):
     pass
 
@@ -114,7 +115,7 @@ class TCPConnectionManager:
         if parsed[1] == 'HELLO':
             self._process_hello(parsed)
             self._send(self.device_info.area + ";SH;REGISTER;" +
-                      self.rm.soundset.name + ";1.0")
+                       self.rm.soundset.name + ";1.0")
 
         if parsed[1] != 'SH' or parsed[0] != self.device_info.area:
             return
@@ -129,8 +130,8 @@ class TCPConnectionManager:
             self._process_change_set(parsed)
         elif parsed[2] == "SETS-LIST":
             self._process_sets_list()
-        elif parsed[2] == "PRIJEDE" or parsed[2] == "ODJEDE" \
-             or parsed[2] == "PROJEDE" or parsed[2] == "SPEC":
+        elif (parsed[2] == "PRIJEDE" or parsed[2] == "ODJEDE" or
+              parsed[2] == "PROJEDE" or parsed[2] == "SPEC"):
             if not self.gong_played and self.rm.soundset.play_gong:
                 self.rm.play_raw_report([
                     os.path.join("gong", "gong_start"),
@@ -194,8 +195,10 @@ class TCPConnectionManager:
     def _process_sync(self, parsed):
         self._send(self.device_info.area + ";SH;SYNC;STARTED;")
 
-        if not self.device_info.smb_server or not self.device_info.smb_home_folder:
-            self._send(self.device_info.area + ";SH;SYNC;ERR;;Samba není nakonfigurována!")
+        if (not self.device_info.smb_server or
+                not self.device_info.smb_home_folder):
+            self._send(self.device_info.area +
+                       ";SH;SYNC;ERR;;Samba není nakonfigurována!")
             return
 
         ro = False
