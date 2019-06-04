@@ -9,17 +9,25 @@ installed, it requires no further control from SSH.
 ## Installation
 
  1. Clone this repository.
- 2. Install packages from `requirements.txt`.
- 3. Run `make all`. This will create `global_config.ini` file.
- 4. Edit `global_config.ini` according to your railway.
- 5. Optional: run `make install` to install station announcement as a systemd
+ 2. Install [Pygame's dependencies](http://www.pygame.org/wiki/CompileUbuntu).
+ 3. Create & use virtualenv:
+
+     ```bash
+     $ virtualenv -p python3 sh-venv
+     $ source sh-venv/bin/activate
+     $ pip3 install -r requirements.txt
+     ```
+ 4. Install packages from `requirements.txt`.
+ 5. Run `make all`. This will create `global_config.ini` file.
+ 6. Edit `global_config.ini` according to your railway.
+ 7. Optional: run `make install` to install station announcement as a systemd
     service.
- 6. Clone sound sets into `shZvuky` folder (transfer raw files or clone
+ 8. Clone sound sets into `shZvuky` folder (transfer raw files or clone
     via git-lfs, see `install_lfs.sh`).
- 7. Optional: configure WiFi (see `wpa_supplicant.conf`).
- 8. Optional: make system read-only via
-    [this script](https://github.com/ways/rpi-readonly).
- 9. Optional: install `smblient` to clone sounds via samba.
+ 9. Optional: configure WiFi (see `wpa_supplicant.conf`).
+ 10. Optional: make system read-only via
+     [this script](https://github.com/ways/rpi-readonly).
+ 11. Optional: install `smblient` to clone sounds via samba.
 
 To uninstall a systemd service, run `make uninstall`.
 
@@ -63,16 +71,6 @@ gong=yes
 salutation=no
 trainNum=yes
 time=no
-```
-
-## Virtualenv
-
-Cheatsheet:
-
-```bash
-$ virtualenv -p python3 sh-venv
-$ source sh-venv/bin/activate
-$ pip3 install -r requirements.txt
 ```
 
 ## Contributors
