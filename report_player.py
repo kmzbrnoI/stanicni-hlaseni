@@ -3,6 +3,7 @@ This file defines low-level functions for palying sound.
 """
 
 import os
+os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame.mixer
 import time
 
