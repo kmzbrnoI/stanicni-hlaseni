@@ -28,7 +28,7 @@ install_git_lfs()
         # Download and compile git-lfs
         go get github.com/github/git-lfs
         pushd src/github.com/github/git-lfs
-            script/bootstrap
+            make
             sudo mv bin/git-lfs /usr/bin/
         popd
     popd
