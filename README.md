@@ -10,14 +10,14 @@ installed, it requires no further control from SSH.
 
  1. Clone this repository.
  2. Install [Pygame's dependencies](http://www.pygame.org/wiki/CompileUbuntu).
- 3. Create & use virtualenv:
+ 3. Install pip & virtualenv
+ 4. Create & use virtualenv:
 
      ```bash
      $ virtualenv -p python3 sh-venv
      $ source sh-venv/bin/activate
      $ pip3 install -r requirements.txt
      ```
- 4. Install packages from `requirements.txt`.
  5. Run `make all`. This will create `global_config.ini` file.
  6. Edit `global_config.ini` according to your railway.
  7. Optional: run `make install` to install station announcement as a systemd
@@ -26,7 +26,7 @@ installed, it requires no further control from SSH.
     via git-lfs, see `install_lfs.sh`).
  9. Optional: configure WiFi (see `wpa_supplicant.conf`).
  10. Optional: make system read-only via
-     [this script](https://github.com/ways/rpi-readonly).
+     [this script](https://gitlab.com/larsfp/rpi-readonly).
  11. Optional: install `smblient` to clone sounds via samba.
 
 To uninstall a systemd service, run `make uninstall`.
