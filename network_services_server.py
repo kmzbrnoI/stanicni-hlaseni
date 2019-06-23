@@ -6,24 +6,24 @@ This is a simple hJOPserver emulator.
 
 import socket
 
+AREA = 'Zd'
 
 def get_example_message(x):
     if x == 0:
         return input() + '\n'
 
-    return {
-        1: 'Klb;SH;PRIJEDE;{501520;MOs;2;Br;Ku;9:22;9:26}',
-        2: 'Klb;SH;ODJEDE;{504220;Os;2;Bs;Zd;13:15;12:01}',
-        3: 'Klb;SH;SPEC;NESAHAT',
-        4: 'Klb;SH;CHANGE-SET;{Veronika}',
-        5: "PING;",
-        6: 'Klb;SH;SYNC',
-        7: 'Klb;SH;SETS-LIST',
-    }.get(x) + '\n'
+    return AREA + ({
+        1: ';SH;PRIJEDE;{501520;MOs;2;Br;Ku;9:22;9:26}',
+        2: ';SH;ODJEDE;{504220;Os;2;Bs;Zd;13:15;12:01}',
+        3: ';SH;SPEC;NESAHAT',
+        4: ';SH;CHANGE-SET;{Veronika}',
+        6: ';SH;SYNC',
+        7: ';SH;SETS-LIST',
+    }.get(x)) + '\n'
 
 
 def tcp_listener():
-    area = "Klb"
+
 
     serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     serversocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -53,7 +53,7 @@ def tcp_listener():
             clientsocket.send(hello_msg.encode('UTF-8'))
 
         elif "SH;REGISTER" in message:
-            register_msg = area + ";SH;REGISTER-RESPONSE;OK;\n"
+            register_msg = AREA + ";SH;REGISTER-RESPONSE;OK;\n"
             clientsocket.send(register_msg.encode('UTF-8'))
             registered = True
 
