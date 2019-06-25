@@ -7,6 +7,7 @@ This is a simple hJOPserver emulator.
 import socket
 
 AREA = 'Zd'
+PORT = 5896
 
 def get_example_message(x):
     if x == 0:
@@ -23,21 +24,19 @@ def get_example_message(x):
 
 
 def tcp_listener():
-
-
     serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     serversocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
     host = socket.gethostbyname(socket.gethostname())
 
-    port = 5896
-    serversocket.bind(('0.0.0.0', port))
+    serversocket.bind(('0.0.0.0', PORT))
     serversocket.listen(1)
 
-    print("Nasloucham na portu:", port)
+    print("Nasloucham na portu:", PORT)
 
     udp_broadcast(
-        "hJOP;1.0;server;hJOPserver;" + get_ip() + ";5896;on;modulovka TT"
+        "hJOP;1.0;server;hJOPserver;" + get_ip() + ";" + str(PORT) +
+        ";on;modulovka TT"
     )
 
     clientsocket, addr = serversocket.accept()
