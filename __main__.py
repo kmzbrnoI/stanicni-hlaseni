@@ -59,6 +59,13 @@ def main():
         except tcp_connection_manager.DisconnectedError:
             logging.error("Disconnected from server!")
 
+        except IOError as e:
+            if e.errno == 101:  # Network in unreachable
+                logging.error("Network is unreachable!")
+                time.sleep(10)
+            else:
+                raise
+
         time.sleep(1)
 
 
