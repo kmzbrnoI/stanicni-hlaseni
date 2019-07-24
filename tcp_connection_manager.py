@@ -116,6 +116,12 @@ class TCPConnectionManager:
             self._process_hello(parsed)
             self._send(self.device_info.area + ";SH;REGISTER;" +
                        self.rm.soundset.name + ";1.0")
+        elif (parsed[1] == 'PING' and len(parsed) > 2 and
+              parsed[2].upper() == 'REQ-RESP'):
+            if len(parsed) > 3:
+                self._send('-;PONG;{0}'.format(parsed[3]))
+            else:
+                seld._send('-;PONG')
 
         if parsed[1] != 'SH' or parsed[0] != self.device_info.area:
             return
