@@ -20,6 +20,9 @@ from soundset import SoundSet
 import device_info
 
 
+CLIENT_PROTOCOL_VERSION = '1.1'
+
+
 class TCPCommunicationEstablishedError(Exception):
     pass
 
@@ -47,7 +50,7 @@ class TCPConnectionManager:
         self.gong_played = False
 
         self._connect(ip, port)
-        self._send('-;HELLO;1.0')
+        self._send('-;HELLO;{0}'.format(CLIENT_PROTOCOL_VERSION))
         self._listen()
 
     def _listen(self):
