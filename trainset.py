@@ -7,11 +7,11 @@ import message_parser
 
 
 class TrainSet:
-    def __init__(self, message):
+    def __init__(self, message: str):
         self.station = ''
         self.load_train_set(message)
 
-    def load_train_set(self, message):
+    def load_train_set(self, message: str):
         parsed = message_parser.parse(message, [';'])
 
         self.train_number = parsed[0]
