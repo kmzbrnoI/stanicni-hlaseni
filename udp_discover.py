@@ -29,7 +29,7 @@ class InvalidVersionError(Exception):
 class ServerInfo:
     """This class holds info about server discovered via UDP discover."""
 
-    def __init__(self, udp_str):
+    def __init__(self, udp_str: str):
         splitted = udp_str.split(';')
 
         if splitted[0] != 'hJOP':

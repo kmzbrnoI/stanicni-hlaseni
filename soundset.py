@@ -11,6 +11,7 @@ no configuration is defined, the value of parameter is 'None'.
 import logging
 import os
 from configparser import ConfigParser
+from typing import Optional, List
 
 
 DEFAULT_CONFIG_FILENAME = 'config.ini'
@@ -25,18 +26,18 @@ class ConfigFileBadFormatError(Exception):
 
 
 class SoundSet:
-    def __init__(self, root, setname):
+    def __init__(self, root: str, setname: str):
         self.root = root
 
-        self.name = None
-        self.play_gong = None
-        self.salutation = None
-        self.train_num = None
-        self.time = None
+        self.name: Optional[str] = None
+        self.play_gong: Optional[bool] = None
+        self.salutation: Optional[bool] = None
+        self.train_num: Optional[bool] = None
+        self.time: Optional[bool] = None
 
         self.hierarchy = self.load_hierarchy(root, setname)
 
-    def load_sound_config(self, parser):
+    def load_sound_config(self, parser: ConfigParser):
         """Loads config of a single file in a hierarchy."""
         try:
             if self.name is None:
@@ -56,13 +57,13 @@ class SoundSet:
             raise ConfigFileBadFormatError('Bad format of config file:'
                                            '{0}!'.format(str(e)))
 
-    def load_hierarchy(self, root, soundset):
+    def load_hierarchy(self, root: str, soundset: str) -> List[str]:
         """
-        Loads config baased of all config files in hierarchy. Returns list
+        Loads config based on all config files in hierarchy. Returns list
         of names of soundsets in hierachy from children to parents.
         """
-        result = []
-        current = soundset
+        result: List[str] = []
+        current: Optional[str] = soundset
 
         while current and current not in result:
             result.append(current)
@@ -90,12 +91,12 @@ class SoundSet:
 
         return result
 
-    def assign(self, report):
+    def assign(self, report: List[str]) -> List[str]:
         """
         Assigns name of the directory to each part of the announcement based
         on non/existence of the file in each directory in the hierarchy.
         """
-        result = []
+        result: List[str] = []
         for r in report:
             for s in self.hierarchy:
                 filename = os.path.join(self.root, s, r)
@@ -103,7 +104,6 @@ class SoundSet:
                     result.append(filename)
                     break
 
-        # DEBUG
         logging.debug(str(result))
 
         return result
