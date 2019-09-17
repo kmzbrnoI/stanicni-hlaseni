@@ -34,7 +34,7 @@ def main():
         try:
             server = udp_discover.find_server(device_info.server_name)
             logging.info(
-                "Server found: {0}:{1}.".format(server.ip, server.port)
+                'Server found: {0}:{1}.'.format(server.ip, server.port)
             )
 
             tcp_connection_manager.TCPConnectionManager(
@@ -42,25 +42,25 @@ def main():
             )
 
         except tcp_connection_manager.TCPCommunicationEstablishedError:
-            logging.error("TCPCommunicationEstablishedError!")
+            logging.error('TCPCommunicationEstablishedError!')
 
         except tcp_connection_manager.TCPTimeoutError:
-            logging.warning("TCP Timeout!")
+            logging.warning('TCP Timeout!')
 
         except udp_discover.ServerNotFoundError:
             time.sleep(10)
-            logging.error("Server not found!")
+            logging.error('Server not found!')
 
         except tcp_connection_manager.OutdatedVersionError:
-            logging.critical("Outdated version of server!")
+            logging.critical('Outdated version of server!')
             break
 
         except tcp_connection_manager.DisconnectedError:
-            logging.error("Disconnected from server!")
+            logging.error('Disconnected from server!')
 
         except IOError as e:
             if e.errno == 101:  # Network in unreachable
-                logging.error("Network is unreachable!")
+                logging.error('Network is unreachable!')
                 time.sleep(10)
             else:
                 raise
@@ -68,5 +68,5 @@ def main():
         time.sleep(1)
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

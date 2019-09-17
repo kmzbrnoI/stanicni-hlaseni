@@ -23,8 +23,8 @@ class DeviceInfo:
         """Reads device info from configuration file."""
         if not os.path.isfile(GLOBAL_CONFIG_FILENAME):
             raise ConfigFileNotFoundError(
-                "Config file not found: "
-                "{0}!".format(GLOBAL_CONFIG_FILENAME)
+                'Config file not found: '
+                '{0}!'.format(GLOBAL_CONFIG_FILENAME)
             )
 
         parser = ConfigParser()
@@ -40,8 +40,8 @@ class DeviceInfo:
             self.smb_server = (parser['samba']['server'])
             self.smb_home_folder = (parser['samba']['home_folder'])
         except Exception as e:
-            raise ConfigFileBadFormatError("Bad format of config file:"
-                                           "{0}!".format(str(e)))
+            raise ConfigFileBadFormatError('Bad format of config file:'
+                                           '{0}!'.format(str(e)))
 
     def store(self, filename):
         config = ConfigParser()

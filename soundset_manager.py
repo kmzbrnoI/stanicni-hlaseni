@@ -33,14 +33,14 @@ def sync(server, home_folder, soundset, soundset_path):
     loaded = []
 
     while current:
-        logging.info("Downloading {0}...".format(current))
+        logging.info('Downloading {0}...'.format(current))
         _download_sound_set(server, home_folder, current, soundset_path)
-        logging.info("{0} downloaded succesfully.".format(current))
+        logging.info('{0} downloaded succesfully.'.format(current))
 
         fn = os.path.join(soundset_path, current, ss.DEFAULT_CONFIG_FILENAME)
         if not os.path.isfile(fn):
-            raise ss.ConfigFileNotFoundError("Config file not found: "
-                                             "{0}!".format(fn))
+            raise ss.ConfigFileNotFoundError('Config file not found: '
+                                             '{0}!'.format(fn))
         parser = ConfigParser()
         parser.read(fn)
         name = parser.sections()[0]
@@ -62,8 +62,8 @@ def get_samba_sets_list(server, home, soundset_path):
     output, err = process.communicate()
 
     if process.returncode != 0:
-        raise SetsListListError("Unable to get list of available sets: "
-                                "{0}".format(err.decode('utf-8')))
+        raise SetsListListError('Unable to get list of available sets: '
+                                '{0}'.format(err.decode('utf-8')))
 
     return output.decode('utf-8').splitlines()[2:]
 

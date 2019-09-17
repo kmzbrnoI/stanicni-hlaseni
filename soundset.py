@@ -42,19 +42,19 @@ class SoundSet:
             if self.name is None:
                 self.name = parser.sections()[0]
 
-            if self.play_gong is None and parser.has_option("sound", "gong"):
-                self.play_gong = parser.getboolean("sound", "gong")
+            if self.play_gong is None and parser.has_option('sound', 'gong'):
+                self.play_gong = parser.getboolean('sound', 'gong')
             if (self.salutation is None and
-                    parser.has_option("sound", "salutation")):
+                    parser.has_option('sound', 'salutation')):
                 self.salutation = parser.getboolean('sound', 'salutation')
             if (self.train_num is None and
-                    parser.has_option("sound", "trainNum")):
+                    parser.has_option('sound', 'trainNum')):
                 self.train_num = parser.getboolean('sound', 'trainNum')
-            if self.time is None and parser.has_option("sound", "time"):
+            if self.time is None and parser.has_option('sound', 'time'):
                 self.time = parser.getboolean('sound', 'time')
         except Exception as e:
-            raise ConfigFileBadFormatError("Bad format of config file:"
-                                           "{0}!".format(str(e)))
+            raise ConfigFileBadFormatError('Bad format of config file:'
+                                           '{0}!'.format(str(e)))
 
     def load_hierarchy(self, root, soundset):
         """
@@ -69,11 +69,11 @@ class SoundSet:
             filename = os.path.join(self.root, current,
                                     DEFAULT_CONFIG_FILENAME)
 
-            logging.info("Reading {0}...".format(filename))
+            logging.info('Reading {0}...'.format(filename))
 
             if not os.path.isfile(filename):
-                raise ConfigFileNotFoundError("Config file not found: "
-                                              "{0}!".format(filename))
+                raise ConfigFileNotFoundError('Config file not found: '
+                                              '{0}!'.format(filename))
 
             try:
                 parser = ConfigParser()
@@ -85,8 +85,8 @@ class SoundSet:
                 else:
                     current = None
             except Exception as e:
-                raise ConfigFileBadFormatError("Bad format of config file:"
-                                               "{0}!".format(str(e)))
+                raise ConfigFileBadFormatError('Bad format of config file:'
+                                               '{0}!'.format(str(e)))
 
         return result
 
@@ -110,8 +110,8 @@ class SoundSet:
 
     def print_sound_config(self):
         """Debug function."""
-        logging.debug("Name: {0}".format(self.name))
-        logging.debug("Gong: {0}".format(self.play_gong))
-        logging.debug("Salutation: {0}".format(self.salutation))
-        logging.debug("Train number: {0}".format(self.train_num))
-        logging.debug("Time: {0}".format(self.time))
+        logging.debug('Name: {0}'.format(self.name))
+        logging.debug('Gong: {0}'.format(self.play_gong))
+        logging.debug('Salutation: {0}'.format(self.salutation))
+        logging.debug('Train number: {0}'.format(self.train_num))
+        logging.debug('Time: {0}'.format(self.time))

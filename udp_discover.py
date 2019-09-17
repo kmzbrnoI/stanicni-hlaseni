@@ -66,7 +66,7 @@ def find_server(name: str) -> ServerInfo:
 
     for i in range(NO_TRY):
         s.sendto(
-            ("hJOP;1.0;sh;;;;;\n").encode('utf-8'),
+            ('hJOP;1.0;sh;;;;;\n').encode('utf-8'),
             ('<broadcast>', DISCOVER_PORT)
         )
 
@@ -88,16 +88,16 @@ def find_server(name: str) -> ServerInfo:
                             return server
 
         except socket.timeout:
-            raise ServerNotFoundError("Server not found!")
+            raise ServerNotFoundError('Server not found!')
 
-    raise ServerNotFoundError("Server not found!")
+    raise ServerNotFoundError('Server not found!')
 
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
     if len(sys.argv) < 2:
-        sys.stderr.write("Usage: ./udp_discover.py server_name\n")
+        sys.stderr.write('Usage: ./udp_discover.py server_name\n')
         sys.exit(1)
 
-    print("Server found:", find_server(sys.argv[1]))
+    print('Server found:', find_server(sys.argv[1]))

@@ -16,7 +16,7 @@ def play_report(report):
     # Check existence of all files
     for f in report:
         if not os.path.isfile(f):
-            raise FileNotFoundError("{0} not found!".format(f))
+            raise FileNotFoundError('{0} not found!'.format(f))
 
     _play_report(report)
 

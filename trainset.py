@@ -24,13 +24,13 @@ class TrainSet:
         self.departure_time = parsed[6] if len(parsed) > 6 else ''
 
     def __str__(self):
-        return ("Train number: {0}\n".format(self.train_number) +
-                "Train type: {0}\n".format(self.train_type) +
-                "Railway: {0}\n".format(self.railway) +
-                "Start station: {0}\n".format(self.start_station) +
-                "Final station: {0}\n".format(self.final_station) +
-                "Arrival time: {0}\n".format(self.arrival_time) +
-                "Departure time: {0}\n".format(self.departure_time) +
-                "Station: {0}".format(self.departure_time))
+        return ('Train number: {0}\n'.format(self.train_number) +
+                'Train type: {0}\n'.format(self.train_type) +
+                'Railway: {0}\n'.format(self.railway) +
+                'Start station: {0}\n'.format(self.start_station) +
+                'Final station: {0}\n'.format(self.final_station) +
+                'Arrival time: {0}\n'.format(self.arrival_time) +
+                'Departure time: {0}\n'.format(self.departure_time) +
+                'Station: {0}'.format(self.departure_time))
 
     __repr__ = __str__

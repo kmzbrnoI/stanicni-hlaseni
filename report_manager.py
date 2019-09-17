@@ -30,23 +30,23 @@ class ReportManager:
         # Prepare common part of announcement
         report = []
         if self.soundset.salutation:
-            report.append(os.path.join("salutation", "vazeni_cestujici"))
+            report.append(os.path.join('salutation', 'vazeni_cestujici'))
         report.append(self._get_traintype_file(train_set.train_type))
 
         if self.soundset.train_num and train_set.train_number:
             report += self._parse_train_number(train_set.train_number)
 
-        if message_type == "prijede":
+        if message_type == 'prijede':
             if train_set.final_station == self.area:
                 return  # do not play 'arrives' in final station
             report += self._prijede(train_set)
-        elif message_type == "odjede":
+        elif message_type == 'odjede':
             report += self._odjede(train_set)
-        elif message_type == "projede":
+        elif message_type == 'projede':
             report += self._projede(train_set)
         else:
             raise UnknownMessageTypeError(
-                "This type of announcement is not supported!"
+                'This type of announcement is not supported!'
             )
 
         report_player.play_report(
@@ -56,21 +56,21 @@ class ReportManager:
     def process_spec_message(self, special_type):
         if special_type == 'POSUN':
             self.play_raw_report([
-                os.path.join("spec", "prosim_pozor"),
-                os.path.join("spec", "nevstupujte_prosim_do_kolejiste"),
-                os.path.join("parts", "pause"),
-                os.path.join("spec", "probiha_posun"),
+                os.path.join('spec', 'prosim_pozor'),
+                os.path.join('spec', 'nevstupujte_prosim_do_kolejiste'),
+                os.path.join('parts', 'pause'),
+                os.path.join('spec', 'probiha_posun'),
             ])
 
         elif special_type == 'NESAHAT':
             self.play_raw_report([
-                os.path.join("salutation_end", "vazeni_navstevnici"),
-                os.path.join("spec",
-                             "nedotykejte_se_prosim_vystavenych_modelu"),
+                os.path.join('salutation_end', 'vazeni_navstevnici'),
+                os.path.join('spec',
+                             'nedotykejte_se_prosim_vystavenych_modelu'),
             ])
 
         else:
-            self.play_raw_report([os.path.join("spec", special_type)])
+            self.play_raw_report([os.path.join('spec', special_type)])
 
     def play_raw_report(self, report):
         report_player.play_report(
@@ -81,21 +81,21 @@ class ReportManager:
         report = []
 
         if train_set.start_station:
-            report.append(os.path.join("parts", "ze_smeru"))
-            report.append(os.path.join("stations", train_set.start_station))
+            report.append(os.path.join('parts', 'ze_smeru'))
+            report.append(os.path.join('stations', train_set.start_station))
 
         if train_set.final_station:
-            report.append(os.path.join("parts", "ve_smeru"))
-            report.append(os.path.join("stations", train_set.final_station))
+            report.append(os.path.join('parts', 've_smeru'))
+            report.append(os.path.join('stations', train_set.final_station))
 
-        report.append(os.path.join("parts", "prijede"))
-        report.append(os.path.join("parts", "na_kolej"))
-        report.append(os.path.join("numbers", "railway_end",
+        report.append(os.path.join('parts', 'prijede'))
+        report.append(os.path.join('parts', 'na_kolej'))
+        report.append(os.path.join('numbers', 'railway_end',
                                    train_set.railway))
 
         if train_set.departure_time and self.soundset.time:
-            report.append(os.path.join("parts", "pause"))
-            report.append(os.path.join("parts", "pravidelny_odjezd"))
+            report.append(os.path.join('parts', 'pause'))
+            report.append(os.path.join('parts', 'pravidelny_odjezd'))
             report += self._get_time(train_set.departure_time, end=True)
 
         return report
@@ -104,17 +104,17 @@ class ReportManager:
         report = []
 
         if train_set.final_station:
-            report.append(os.path.join("parts", "ve_smeru"))
-            report.append(os.path.join("stations", train_set.final_station))
+            report.append(os.path.join('parts', 've_smeru'))
+            report.append(os.path.join('stations', train_set.final_station))
 
         if train_set.departure_time and self.soundset.time:
-            report.append(os.path.join("parts", "pravidelny_odjezd"))
+            report.append(os.path.join('parts', 'pravidelny_odjezd'))
             report += self._get_time(train_set.departure_time)
 
-        report.append(os.path.join("parts", "odjede"))
-        report.append(os.path.join("parts", "z_koleje"))
+        report.append(os.path.join('parts', 'odjede'))
+        report.append(os.path.join('parts', 'z_koleje'))
 
-        report.append(os.path.join("numbers", "leave_railway",
+        report.append(os.path.join('numbers', 'leave_railway',
                                    train_set.railway))
 
         return report
@@ -124,9 +124,9 @@ class ReportManager:
 
     def _get_traintype_file(self, train_type):
         if self.soundset.train_num:
-            return os.path.join("trainType", train_type + "_cislo")
+            return os.path.join('trainType', train_type + '_cislo')
         else:
-            return os.path.join("trainType", train_type)
+            return os.path.join('trainType', train_type)
 
     @staticmethod
     def add_suffix(report):
@@ -141,14 +141,14 @@ class ReportManager:
         hours, minutes = time.split(':')
 
         return [
-            os.path.join("time", "hours", hours.lstrip("0")),
-            os.path.join("time", "minutes" +
-                         ('_end' if end else ''), minutes.lstrip("0"))
+            os.path.join('time', 'hours', hours.lstrip('0')),
+            os.path.join('time', 'minutes' +
+                         ('_end' if end else ''), minutes.lstrip('0'))
         ]
 
     def _parse_train_number(self, train_number):
         train_number_len = len(train_number)
-        logging.debug("Train number: {0}".format(train_number))
+        logging.debug('Train number: {0}'.format(train_number))
 
         if train_number_len % 2 == 0:
             first_part, second_part = (
@@ -193,7 +193,7 @@ class ReportManager:
         sound_set = []
 
         for position, character in enumerate(reversed(number)):
-            if (position == 1) and (character == "1"):
+            if (position == 1) and (character == '1'):
                 first_char = sound_set[0]
                 sound_set[0] = '1' + first_char
             else:
@@ -210,6 +210,6 @@ class ReportManager:
 
     @staticmethod
     def _assign_number_directory(input_list):
-        out = [os.path.join("numbers", "trainNum", x) for x in input_list[:-1]]
-        out.append(os.path.join("numbers", "trainNum_end", input_list[-1]))
+        out = [os.path.join('numbers', 'trainNum', x) for x in input_list[:-1]]
+        out.append(os.path.join('numbers', 'trainNum_end', input_list[-1]))
         return out

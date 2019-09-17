@@ -58,7 +58,7 @@ class TCPConnectionManager:
             while self.socket:
                 data = self.socket.recv(2048)
                 if not data:
-                    raise DisconnectedError("Disconnected from server!")
+                    raise DisconnectedError('Disconnected from server!')
 
                 recv = previous + data.decode('utf-8').replace('\r', '')
                 previous = ''
@@ -66,7 +66,7 @@ class TCPConnectionManager:
                 if '\n' not in recv:
                     if self.gong_played:
                         self.rm.play_raw_report(
-                            [os.path.join("gong", "gong_end")]
+                            [os.path.join('gong', 'gong_end')]
                         )
                     self.gong_played = False
                     previous = recv
@@ -76,14 +76,14 @@ class TCPConnectionManager:
 
                 while q:
                     item = q.popleft()
-                    logging.debug("> {0}".format(item.strip()))
+                    logging.debug('> {0}'.format(item.strip()))
 
                     if item.endswith('\n'):
                         try:
                             self._process_message(item.strip())
                         except Exception as e:
-                            logging.warning("Message processing error: "
-                                            "{0}!".format(str(e)))
+                            logging.warning('Message processing error: '
+                                            '{0}!'.format(str(e)))
                             traceback.print_exc()
                     else:
                         previous = item
@@ -91,20 +91,20 @@ class TCPConnectionManager:
                 # Play gong if no data at input
                 readable, _, _ = select.select([self.socket], [], [], 0)
                 if not readable and self.gong_played:
-                    self.rm.play_raw_report([os.path.join("gong", "gong_end")])
+                    self.rm.play_raw_report([os.path.join('gong', 'gong_end')])
                     self.gong_played = False
 
         except Exception as e:
-            logging.error("Connection error: {0}".format(e))
+            logging.error('Connection error: {0}'.format(e))
 
     def _send(self, message):
         try:
             if self.socket:
-                logging.debug("< {0}".format(message))
+                logging.debug('< {0}'.format(message))
                 self.socket.send((message + '\n').encode('UTF-8'))
 
         except Exception as e:
-            logging.error("Connection exception: {0}".format(e))
+            logging.error('Connection exception: {0}'.format(e))
 
     def _process_message(self, message):
         parsed = message_parser.parse(message, [';'])
@@ -115,8 +115,8 @@ class TCPConnectionManager:
 
         if parsed[1] == 'HELLO':
             self._process_hello(parsed)
-            self._send(self.device_info.area + ";SH;REGISTER;" +
-                       self.rm.soundset.name + ";1.0")
+            self._send(self.device_info.area + ';SH;REGISTER;' +
+                       self.rm.soundset.name + ';1.0')
         elif (parsed[1] == 'PING' and len(parsed) > 2 and
               parsed[2].upper() == 'REQ-RESP'):
             if len(parsed) > 3:
@@ -129,48 +129,48 @@ class TCPConnectionManager:
 
         parsed[2] = parsed[2].upper()
 
-        if parsed[2] == "REGISTER-RESPONSE":
+        if parsed[2] == 'REGISTER-RESPONSE':
             self._process_register_response(parsed)
-        elif parsed[2] == "SYNC":
+        elif parsed[2] == 'SYNC':
             self._process_sync(parsed)
-        elif parsed[2] == "CHANGE-SET":
+        elif parsed[2] == 'CHANGE-SET':
             self._process_change_set(parsed)
-        elif parsed[2] == "SETS-LIST":
+        elif parsed[2] == 'SETS-LIST':
             self._process_sets_list()
-        elif (parsed[2] == "PRIJEDE" or parsed[2] == "ODJEDE" or
-              parsed[2] == "PROJEDE" or parsed[2] == "SPEC"):
+        elif (parsed[2] == 'PRIJEDE' or parsed[2] == 'ODJEDE' or
+              parsed[2] == 'PROJEDE' or parsed[2] == 'SPEC'):
             if not self.gong_played and self.rm.soundset.play_gong:
                 self.rm.play_raw_report([
-                    os.path.join("gong", "gong_start"),
+                    os.path.join('gong', 'gong_start'),
                 ])
                 self.gong_played = True
 
-            if parsed[2] == "SPEC":
+            if parsed[2] == 'SPEC':
                 self.rm.process_spec_message(parsed[3].upper())
             else:
                 self.rm.process_trainset_message(parsed)
 
     def _process_hello(self, parsed):
         version = float(parsed[2])
-        logging.info("Server version: {0}.".format(version))
+        logging.info('Server version: {0}.'.format(version))
 
         if version < 1:
-            raise OutdatedVersionError("Outdated version of server protocol: "
-                                       "{0}!".format(version))
+            raise OutdatedVersionError('Outdated version of server protocol: '
+                                       '{0}!'.format(version))
 
     def _process_register_response(self, parsed):
         state = parsed[3].upper()
 
         if state == 'OK':
-            logging.info("Successfully registered to "
-                         "{0}.".format(self.device_info.area))
+            logging.info('Successfully registered to '
+                         '{0}.'.format(self.device_info.area))
 
         elif state == 'ERR':
             error_note = parsed[4].upper()
-            logging.error("Register error: {0}".format(error_note))
+            logging.error('Register error: {0}'.format(error_note))
             # TODO: what to do here?
         else:
-            logging.error("Invalid state: {0}!".format(state))
+            logging.error('Invalid state: {0}!'.format(state))
             # TODO: what to do here?
 
     def _connect(self, ip, port):
@@ -179,7 +179,7 @@ class TCPConnectionManager:
             self.socket.settimeout(50)
             self.socket.connect((ip, port))
         except Exception as e:
-            logging.warning("Connect exception: {0}".format(e))
+            logging.warning('Connect exception: {0}'.format(e))
             self.socket = None
 
     def _process_sets_list(self):
@@ -200,12 +200,12 @@ class TCPConnectionManager:
         )
 
     def _process_sync(self, parsed):
-        self._send(self.device_info.area + ";SH;SYNC;STARTED;")
+        self._send(self.device_info.area + ';SH;SYNC;STARTED;')
 
         if (not self.device_info.smb_server or
                 not self.device_info.smb_home_folder):
             self._send(self.device_info.area +
-                       ";SH;SYNC;ERR;;Samba není nakonfigurována!")
+                       ';SH;SYNC;ERR;;Samba není nakonfigurována!')
             return
 
         ro = False
@@ -224,16 +224,16 @@ class TCPConnectionManager:
                 self.device_info.soundset_path, self.device_info.soundset
             )
 
-            self._send(self.device_info.area + ";SH;SYNC;DONE;" +
-                       self.device_info.soundset + ";")
+            self._send(self.device_info.area + ';SH;SYNC;DONE;' +
+                       self.device_info.soundset + ';')
         except Exception as e:
             # DEBUG:
-            logging.warning("Download error: "
-                            "{0}!".format(str(e)))
+            logging.warning('Download error: '
+                            '{0}!'.format(str(e)))
             traceback.print_exc()
 
-            self._send(self.device_info.area + ";SH;SYNC;ERR;" +
-                       ";" + str(e))
+            self._send(self.device_info.area + ';SH;SYNC;ERR;' +
+                       ';' + str(e))
         finally:
             if ro:
                 soundset_manager.remount_ro(self.device_info.soundset_path)
@@ -257,14 +257,14 @@ class TCPConnectionManager:
             self.device_info.soundset = parsed[3]
             self.device_info.store(device_info.GLOBAL_CONFIG_FILENAME)
 
-            self._send(self.device_info.area + ";SH;CHANGE-SET;OK;")
+            self._send(self.device_info.area + ';SH;CHANGE-SET;OK;')
         except Exception as e:
             # DEBUG:
-            logging.warning("Download error: "
-                            "{0}!".format(str(e)))
+            logging.warning('Download error: '
+                            '{0}!'.format(str(e)))
             traceback.print_exc()
 
-            self._send(self.device_info.area + ";SH;CHANGE-SET;ERR;" + str(e))
+            self._send(self.device_info.area + ';SH;CHANGE-SET;ERR;' + str(e))
         finally:
             if ro:
                 soundset_manager.remount_ro(self.device_info.soundset_path)
