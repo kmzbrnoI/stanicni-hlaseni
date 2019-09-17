@@ -120,7 +120,7 @@ class ReportManager:
         return report
 
     def _projede(self, train_set):
-        raise UnknownMessageError(Exception)
+        raise UnknownMessageTypeError(Exception)
 
     def _get_traintype_file(self, train_type):
         if self.soundset.train_num:

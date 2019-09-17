@@ -5,7 +5,6 @@ This is a main service executable file. Use it to start Station Announcement.
 """
 
 import logging
-import os
 import time
 
 from device_info import DeviceInfo
@@ -38,7 +37,7 @@ def main():
                 "Server found: {0}:{1}.".format(server.ip, server.port)
             )
 
-            client = tcp_connection_manager.TCPConnectionManager(
+            tcp_connection_manager.TCPConnectionManager(
                 server.ip, server.port, device_info
             )
 

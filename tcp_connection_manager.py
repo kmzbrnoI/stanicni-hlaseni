@@ -7,9 +7,7 @@ its methods based on received data.
 import logging
 import os
 import socket
-import time
 from collections import deque
-from os import path
 import traceback
 import select
 
@@ -124,7 +122,7 @@ class TCPConnectionManager:
             if len(parsed) > 3:
                 self._send('-;PONG;{0}'.format(parsed[3]))
             else:
-                seld._send('-;PONG')
+                self._send('-;PONG')
 
         if parsed[1] != 'SH' or parsed[0] != self.device_info.area:
             return

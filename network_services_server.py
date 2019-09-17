@@ -9,6 +9,7 @@ import socket
 AREA = 'Zd'
 PORT = 5896
 
+
 def get_example_message(x):
     if x == 0:
         return input() + '\n'
@@ -26,8 +27,6 @@ def get_example_message(x):
 def tcp_listener():
     serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     serversocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-
-    host = socket.gethostbyname(socket.gethostname())
 
     serversocket.bind(('0.0.0.0', PORT))
     serversocket.listen(1)
