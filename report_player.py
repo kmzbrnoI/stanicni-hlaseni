@@ -4,8 +4,8 @@ This file defines low-level functions for palying sound.
 
 import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
-import pygame.mixer
-import time
+import pygame.mixer  # noqa: E402
+import time  # noqa: E402
 
 
 class FileNotFoundError(Exception):
