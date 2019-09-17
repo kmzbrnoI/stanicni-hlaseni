@@ -11,7 +11,7 @@ no configuration is defined, the value of parameter is 'None'.
 import logging
 import os
 from configparser import ConfigParser
-from typing import Optional, List
+from typing import Optional, List, Iterable
 
 
 DEFAULT_CONFIG_FILENAME = 'config.ini'
@@ -91,7 +91,7 @@ class SoundSet:
 
         return result
 
-    def assign(self, report: List[str]) -> List[str]:
+    def assign(self, report: Iterable[str]) -> List[str]:
         """
         Assigns name of the directory to each part of the announcement based
         on non/existence of the file in each directory in the hierarchy.

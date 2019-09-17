@@ -6,13 +6,14 @@ import os
 os.environ['PYGAME_HIDE_SUPPORT_PROMPT'] = 'hide'
 import pygame.mixer  # noqa: E402
 import time  # noqa: E402
+from typing import Iterable  # noqa: E402
 
 
 class FileNotFoundError(Exception):
     pass
 
 
-def play_report(report):
+def play_report(report: Iterable[str]):
     # Check existence of all files
     for f in report:
         if not os.path.isfile(f):
@@ -21,7 +22,7 @@ def play_report(report):
     _play_report(report)
 
 
-def _play_report(sound_sequence):
+def _play_report(sound_sequence: Iterable[str]):
     pygame.mixer.init()
 
     sounds = [pygame.mixer.Sound(f) for f in sound_sequence]

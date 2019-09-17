@@ -12,7 +12,7 @@ class TrainSet:
         self.load_train_set(message)
 
     def load_train_set(self, message: str):
-        parsed = message_parser.parse(message, [';'])
+        parsed = message_parser.parse(message, ';')
 
         self.train_number = parsed[0]
         self.train_type = parsed[1]

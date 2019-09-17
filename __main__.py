@@ -12,7 +12,7 @@ import tcp_connection_manager
 import udp_discover
 
 
-def get_logging_level(verbosity):
+def get_logging_level(verbosity: str):
     return {
         'debug': logging.DEBUG,
         'info': logging.INFO,

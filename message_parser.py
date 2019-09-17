@@ -2,13 +2,15 @@
 This file is a parser helper. It allows parsing data from server.
 """
 
+from typing import List
 
-def parse(data, separators):
+
+def parse(data: str, separators: str) -> List[str]:
     """
     This function parses string into list of strings based on 'separators'.
     It follows hJOPserver`s PanelServer messages format.
     """
-    output = []
+    output: List[str] = []
     item = ''
     escaped_level = 0
 

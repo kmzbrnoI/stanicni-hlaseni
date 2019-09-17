@@ -43,7 +43,7 @@ class DeviceInfo:
             raise ConfigFileBadFormatError('Bad format of config file:'
                                            '{0}!'.format(str(e)))
 
-    def store(self, filename):
+    def store(self, filename: str):
         config = ConfigParser()
 
         config.add_section('server')

@@ -10,6 +10,7 @@ import socket
 from collections import deque
 import traceback
 import select
+from typing import List, Optional
 
 import message_parser
 import report_manager
@@ -97,7 +98,7 @@ class TCPConnectionManager:
         except Exception as e:
             logging.error('Connection error: {0}'.format(e))
 
-    def _send(self, message):
+    def _send(self, message: str):
         try:
             if self.socket:
                 logging.debug('< {0}'.format(message))
@@ -106,8 +107,8 @@ class TCPConnectionManager:
         except Exception as e:
             logging.error('Connection exception: {0}'.format(e))
 
-    def _process_message(self, message):
-        parsed = message_parser.parse(message, [';'])
+    def _process_message(self, message: str):
+        parsed = message_parser.parse(message, ';')
         if len(parsed) < 2:
             return
 
@@ -150,7 +151,7 @@ class TCPConnectionManager:
             else:
                 self.rm.process_trainset_message(parsed)
 
-    def _process_hello(self, parsed):
+    def _process_hello(self, parsed: List[str]):
         version = float(parsed[2])
         logging.info('Server version: {0}.'.format(version))
 
@@ -158,7 +159,7 @@ class TCPConnectionManager:
             raise OutdatedVersionError('Outdated version of server protocol: '
                                        '{0}!'.format(version))
 
-    def _process_register_response(self, parsed):
+    def _process_register_response(self, parsed: List[str]):
         state = parsed[3].upper()
 
         if state == 'OK':
@@ -173,9 +174,10 @@ class TCPConnectionManager:
             logging.error('Invalid state: {0}!'.format(state))
             # TODO: what to do here?
 
-    def _connect(self, ip, port):
+    def _connect(self, ip: str, port: int):
         try:
-            self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            self.socket: Optional[socket.socket] = \
+                socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.socket.settimeout(50)
             self.socket.connect((ip, port))
         except Exception as e:
@@ -199,7 +201,7 @@ class TCPConnectionManager:
             ','.join(set(sound_sets)) + '}'
         )
 
-    def _process_sync(self, parsed):
+    def _process_sync(self, parsed: List[str]):
         self._send(self.device_info.area + ';SH;SYNC;STARTED;')
 
         if (not self.device_info.smb_server or
@@ -238,7 +240,7 @@ class TCPConnectionManager:
             if ro:
                 soundset_manager.remount_ro(self.device_info.soundset_path)
 
-    def _process_change_set(self, parsed):
+    def _process_change_set(self, parsed: List[str]):
         ro = False
         try:
             ro = soundset_manager.is_ro(self.device_info.soundset_path)

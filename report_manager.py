@@ -8,7 +8,9 @@ import os
 
 from soundset import SoundSet
 from trainset import TrainSet
+from device_info import DeviceInfo
 import report_player
+from typing import List, Iterator
 
 
 class UnknownMessageTypeError(Exception):
@@ -17,13 +19,13 @@ class UnknownMessageTypeError(Exception):
 
 class ReportManager:
 
-    def __init__(self, device_info):
+    def __init__(self, device_info: DeviceInfo):
         self.area = device_info.area
         self.soundset = SoundSet(
             device_info.soundset_path, device_info.soundset
         )
 
-    def process_trainset_message(self, parsed):
+    def process_trainset_message(self, parsed: List[str]):
         message_type = parsed[2].lower()
         train_set = TrainSet(parsed[3])
 
@@ -53,7 +55,7 @@ class ReportManager:
             self.soundset.assign(self.add_suffix(report))
         )
 
-    def process_spec_message(self, special_type):
+    def process_spec_message(self, special_type: str):
         if special_type == 'POSUN':
             self.play_raw_report([
                 os.path.join('spec', 'prosim_pozor'),
@@ -72,13 +74,13 @@ class ReportManager:
         else:
             self.play_raw_report([os.path.join('spec', special_type)])
 
-    def play_raw_report(self, report):
+    def play_raw_report(self, report: List[str]):
         report_player.play_report(
             self.soundset.assign(self.add_suffix(report))
         )
 
-    def _prijede(self, train_set):
-        report = []
+    def _prijede(self, train_set: TrainSet) -> List[str]:
+        report: List[str] = []
 
         if train_set.start_station:
             report.append(os.path.join('parts', 'ze_smeru'))
@@ -100,8 +102,8 @@ class ReportManager:
 
         return report
 
-    def _odjede(self, train_set):
-        report = []
+    def _odjede(self, train_set: TrainSet) -> List[str]:
+        report: List[str] = []
 
         if train_set.final_station:
             report.append(os.path.join('parts', 've_smeru'))
@@ -119,21 +121,21 @@ class ReportManager:
 
         return report
 
-    def _projede(self, train_set):
+    def _projede(self, train_set: TrainSet):
         raise UnknownMessageTypeError(Exception)
 
-    def _get_traintype_file(self, train_type):
+    def _get_traintype_file(self, train_type: str) -> str:
         if self.soundset.train_num:
             return os.path.join('trainType', train_type + '_cislo')
         else:
             return os.path.join('trainType', train_type)
 
     @staticmethod
-    def add_suffix(report):
+    def add_suffix(report: List[str]) -> Iterator[str]:
         return map(lambda s: s + '.ogg', report)
 
     @staticmethod
-    def _get_time(time, end=False):
+    def _get_time(time: str, end: bool = False):
         """
         Converts time to list of sounds.
         Example of time: '9:46'.
@@ -146,7 +148,7 @@ class ReportManager:
                          ('_end' if end else ''), minutes.lstrip('0'))
         ]
 
-    def _parse_train_number(self, train_number):
+    def _parse_train_number(self, train_number: str):
         train_number_len = len(train_number)
         logging.debug('Train number: {0}'.format(train_number))
 
@@ -185,12 +187,12 @@ class ReportManager:
             return first_list
 
     @staticmethod
-    def _find_audio_number(number):
+    def _find_audio_number(number: str) -> List[str]:
         """
         This function translates number to sounds.
         It returns list of sounds to be spelled.
         """
-        sound_set = []
+        sound_set: List[str] = []
 
         for position, character in enumerate(reversed(number)):
             if (position == 1) and (character == '1'):
@@ -209,7 +211,7 @@ class ReportManager:
         return output_list
 
     @staticmethod
-    def _assign_number_directory(input_list):
+    def _assign_number_directory(input_list: List[str]) -> List[str]:
         out = [os.path.join('numbers', 'trainNum', x) for x in input_list[:-1]]
         out.append(os.path.join('numbers', 'trainNum_end', input_list[-1]))
         return out
