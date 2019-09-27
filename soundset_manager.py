@@ -26,7 +26,8 @@ class RemountError(Exception):
     pass
 
 
-def sync(server: str, home_folder: str, soundset: str, soundset_path: str) -> None:
+def sync(server: str, home_folder: str, soundset: str,
+         soundset_path: str) -> None:
     """
     Downloads current soundset from samba server and all parent soundsets too.
     """
@@ -52,7 +53,8 @@ def sync(server: str, home_folder: str, soundset: str, soundset_path: str) -> No
             break
 
 
-def get_samba_sets_list(server: str, home: str, soundset_path: str) -> List[str]:
+def get_samba_sets_list(server: str, home: str,
+                        soundset_path: str) -> List[str]:
     """Returns list of available soundsets at samba server."""
     process = subprocess.Popen(
         [os.path.abspath('list_samba.sh'), server, home],
@@ -75,7 +77,8 @@ def get_local_sets_list(root: str) -> List[str]:
             if os.path.isdir(os.path.join(root, o)) and o[0] != '.']
 
 
-def change_set(soundset: str, soundset_path: str, server: str, home_folder: str) -> None:
+def change_set(soundset: str, soundset_path: str, server: str,
+               home_folder: str) -> None:
     if not os.path.isdir(os.path.join(soundset_path, soundset)):
         if not server or not home_folder:
             raise SambaNotConfiguredError('Samba is not configured!')
@@ -83,7 +86,8 @@ def change_set(soundset: str, soundset_path: str, server: str, home_folder: str)
         sync(server, home_folder, soundset, soundset_path)
 
 
-def _download_sound_set(server_ip: str, home_folder: str, sound_set: str, soundset_path: str) -> None:
+def _download_sound_set(server_ip: str, home_folder: str, sound_set: str,
+                        soundset_path: str) -> None:
     process = subprocess.Popen(
         [
             os.path.abspath('download_sound_set.sh'),
