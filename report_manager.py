@@ -186,8 +186,7 @@ class ReportManager:
 
             return first_list
 
-        else:
-            raise BaseException('Invalid train number')
+        raise BaseException('Invalid train number')
 
     @staticmethod
     def _find_audio_number(number: str) -> List[str]:
