@@ -12,7 +12,7 @@ import tcp_connection_manager
 import udp_discover
 
 
-def get_logging_level(verbosity: str):
+def get_logging_level(verbosity: str) -> int:
     return {
         'debug': logging.DEBUG,
         'info': logging.INFO,
@@ -22,13 +22,16 @@ def get_logging_level(verbosity: str):
     }.get(verbosity, logging.DEBUG)
 
 
-def main():
+def main() -> None:
     device_info = DeviceInfo()
 
-    logging.basicConfig(
-        level=get_logging_level(device_info.verbosity),
-        filename=device_info.path if device_info.path else None
-    )
+    if device_info.path:
+        logging.basicConfig(
+            level=get_logging_level(device_info.verbosity),
+            filename=device_info.path,
+        )
+    else:
+        logging.basicConfig(level=get_logging_level(device_info.verbosity))
 
     while True:
         try:

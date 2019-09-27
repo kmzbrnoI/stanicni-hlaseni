@@ -7,6 +7,7 @@ import os
 import logging
 from configparser import ConfigParser
 import soundset as ss
+from typing import List
 
 
 class SetsListListError(Exception):
@@ -25,7 +26,7 @@ class RemountError(Exception):
     pass
 
 
-def sync(server, home_folder, soundset, soundset_path):
+def sync(server: str, home_folder: str, soundset: str, soundset_path: str) -> None:
     """
     Downloads current soundset from samba server and all parent soundsets too.
     """
@@ -51,7 +52,7 @@ def sync(server, home_folder, soundset, soundset_path):
             break
 
 
-def get_samba_sets_list(server, home, soundset_path):
+def get_samba_sets_list(server: str, home: str, soundset_path: str) -> List[str]:
     """Returns list of available soundsets at samba server."""
     process = subprocess.Popen(
         [os.path.abspath('list_samba.sh'), server, home],
@@ -65,16 +66,16 @@ def get_samba_sets_list(server, home, soundset_path):
         raise SetsListListError('Unable to get list of available sets: '
                                 '{0}'.format(err.decode('utf-8')))
 
-    return output.decode('utf-8').splitlines()[2:]
+    return list(output.decode('utf-8').splitlines())[2:]
 
 
-def get_local_sets_list(root):
+def get_local_sets_list(root: str) -> List[str]:
     """Returns list of local available soundsets."""
     return [o for o in os.listdir(root)
             if os.path.isdir(os.path.join(root, o)) and o[0] != '.']
 
 
-def change_set(soundset, soundset_path, server, home_folder):
+def change_set(soundset: str, soundset_path: str, server: str, home_folder: str) -> None:
     if not os.path.isdir(os.path.join(soundset_path, soundset)):
         if not server or not home_folder:
             raise SambaNotConfiguredError('Samba is not configured!')
@@ -82,7 +83,7 @@ def change_set(soundset, soundset_path, server, home_folder):
         sync(server, home_folder, soundset, soundset_path)
 
 
-def _download_sound_set(server_ip, home_folder, sound_set, soundset_path):
+def _download_sound_set(server_ip: str, home_folder: str, sound_set: str, soundset_path: str) -> None:
     process = subprocess.Popen(
         [
             os.path.abspath('download_sound_set.sh'),
@@ -101,12 +102,12 @@ def _download_sound_set(server_ip, home_folder, sound_set, soundset_path):
                             '{0}'.format(stderr.decode('utf-8')))
 
 
-def is_ro(path):
+def is_ro(path: str) -> bool:
     stat = os.statvfs(path)
     return bool(stat.f_flag & os.ST_RDONLY)
 
 
-def _remount(path, mode):
+def _remount(path: str, mode: str) -> None:
     logging.info('Remounting {0}...'.format(mode))
 
     process = subprocess.Popen(
@@ -122,9 +123,9 @@ def _remount(path, mode):
                            '{1}'.format(mode, stderr.decode('utf-8')))
 
 
-def remount_ro(path):
+def remount_ro(path: str) -> None:
     _remount(path, 'ro')
 
 
-def remount_rw(path):
+def remount_rw(path: str) -> None:
     _remount(path, 'rw')

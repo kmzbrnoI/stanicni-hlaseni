@@ -25,7 +25,7 @@ class ReportManager:
             device_info.soundset_path, device_info.soundset
         )
 
-    def process_trainset_message(self, parsed: List[str]):
+    def process_trainset_message(self, parsed: List[str]) -> None:
         message_type = parsed[2].lower()
         train_set = TrainSet(parsed[3])
 
@@ -55,7 +55,7 @@ class ReportManager:
             self.soundset.assign(self.add_suffix(report))
         )
 
-    def process_spec_message(self, special_type: str):
+    def process_spec_message(self, special_type: str) -> None:
         if special_type == 'POSUN':
             self.play_raw_report([
                 os.path.join('spec', 'prosim_pozor'),
@@ -74,7 +74,7 @@ class ReportManager:
         else:
             self.play_raw_report([os.path.join('spec', special_type)])
 
-    def play_raw_report(self, report: List[str]):
+    def play_raw_report(self, report: List[str]) -> None:
         report_player.play_report(
             self.soundset.assign(self.add_suffix(report))
         )
@@ -121,7 +121,7 @@ class ReportManager:
 
         return report
 
-    def _projede(self, train_set: TrainSet):
+    def _projede(self, train_set: TrainSet) -> List[str]:
         raise UnknownMessageTypeError(Exception)
 
     def _get_traintype_file(self, train_type: str) -> str:
@@ -135,7 +135,7 @@ class ReportManager:
         return map(lambda s: s + '.ogg', report)
 
     @staticmethod
-    def _get_time(time: str, end: bool = False):
+    def _get_time(time: str, end: bool = False) -> List[str]:
         """
         Converts time to list of sounds.
         Example of time: '9:46'.
@@ -148,7 +148,7 @@ class ReportManager:
                          ('_end' if end else ''), minutes.lstrip('0'))
         ]
 
-    def _parse_train_number(self, train_number: str):
+    def _parse_train_number(self, train_number: str) -> List[str]:
         train_number_len = len(train_number)
         logging.debug('Train number: {0}'.format(train_number))
 
@@ -185,6 +185,9 @@ class ReportManager:
             first_list += second_list
 
             return first_list
+
+        else:
+            raise BaseException('Invalid train number')
 
     @staticmethod
     def _find_audio_number(number: str) -> List[str]:

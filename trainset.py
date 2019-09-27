@@ -11,7 +11,7 @@ class TrainSet:
         self.station = ''
         self.load_train_set(message)
 
-    def load_train_set(self, message: str):
+    def load_train_set(self, message: str) -> None:
         parsed = message_parser.parse(message, ';')
 
         self.train_number = parsed[0]
@@ -23,7 +23,7 @@ class TrainSet:
         self.arrival_time = parsed[5] if len(parsed) > 5 else ''
         self.departure_time = parsed[6] if len(parsed) > 6 else ''
 
-    def __str__(self):
+    def __str__(self) -> str:
         return ('Train number: {0}\n'.format(self.train_number) +
                 'Train type: {0}\n'.format(self.train_type) +
                 'Railway: {0}\n'.format(self.railway) +

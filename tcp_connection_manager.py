@@ -16,7 +16,7 @@ import message_parser
 import report_manager
 import soundset_manager
 from soundset import SoundSet
-import device_info
+from device_info import DeviceInfo, GLOBAL_CONFIG_FILENAME
 
 
 CLIENT_PROTOCOL_VERSION = '1.1'
@@ -43,7 +43,7 @@ class DisconnectedError(Exception):
 
 
 class TCPConnectionManager:
-    def __init__(self, ip, port, device_info):
+    def __init__(self, ip: str, port: int, device_info: DeviceInfo):
         self.device_info = device_info
         self.rm = report_manager.ReportManager(self.device_info)
         self.gong_played = False
@@ -52,7 +52,7 @@ class TCPConnectionManager:
         self._send('-;HELLO;{0}'.format(CLIENT_PROTOCOL_VERSION))
         self._listen()
 
-    def _listen(self):
+    def _listen(self) -> None:
         previous = ''
 
         try:
@@ -98,7 +98,7 @@ class TCPConnectionManager:
         except Exception as e:
             logging.error('Connection error: {0}'.format(e))
 
-    def _send(self, message: str):
+    def _send(self, message: str) -> None:
         try:
             if self.socket:
                 logging.debug('< {0}'.format(message))
@@ -107,7 +107,7 @@ class TCPConnectionManager:
         except Exception as e:
             logging.error('Connection exception: {0}'.format(e))
 
-    def _process_message(self, message: str):
+    def _process_message(self, message: str) -> None:
         parsed = message_parser.parse(message, ';')
         if len(parsed) < 2:
             return
@@ -116,6 +116,9 @@ class TCPConnectionManager:
 
         if parsed[1] == 'HELLO':
             self._process_hello(parsed)
+            assert self.device_info.area is not None, 'Area cannot be empty!'
+            assert self.rm.soundset.name is not None, \
+                'Soundset cannot have empty name!'
             self._send(self.device_info.area + ';SH;REGISTER;' +
                        self.rm.soundset.name + ';1.0')
         elif (parsed[1] == 'PING' and len(parsed) > 2 and
@@ -151,7 +154,7 @@ class TCPConnectionManager:
             else:
                 self.rm.process_trainset_message(parsed)
 
-    def _process_hello(self, parsed: List[str]):
+    def _process_hello(self, parsed: List[str]) -> None:
         version = float(parsed[2])
         logging.info('Server version: {0}.'.format(version))
 
@@ -159,7 +162,7 @@ class TCPConnectionManager:
             raise OutdatedVersionError('Outdated version of server protocol: '
                                        '{0}!'.format(version))
 
-    def _process_register_response(self, parsed: List[str]):
+    def _process_register_response(self, parsed: List[str]) -> None:
         state = parsed[3].upper()
 
         if state == 'OK':
@@ -174,7 +177,7 @@ class TCPConnectionManager:
             logging.error('Invalid state: {0}!'.format(state))
             # TODO: what to do here?
 
-    def _connect(self, ip: str, port: int):
+    def _connect(self, ip: str, port: int) -> None:
         try:
             self.socket: Optional[socket.socket] = \
                 socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -184,7 +187,7 @@ class TCPConnectionManager:
             logging.warning('Connect exception: {0}'.format(e))
             self.socket = None
 
-    def _process_sets_list(self):
+    def _process_sets_list(self) -> None:
         sound_sets = soundset_manager.get_local_sets_list(
             self.device_info.soundset_path
         )
@@ -201,7 +204,7 @@ class TCPConnectionManager:
             ','.join(set(sound_sets)) + '}'
         )
 
-    def _process_sync(self, parsed: List[str]):
+    def _process_sync(self, parsed: List[str]) -> None:
         self._send(self.device_info.area + ';SH;SYNC;STARTED;')
 
         if (not self.device_info.smb_server or
@@ -240,7 +243,7 @@ class TCPConnectionManager:
             if ro:
                 soundset_manager.remount_ro(self.device_info.soundset_path)
 
-    def _process_change_set(self, parsed: List[str]):
+    def _process_change_set(self, parsed: List[str]) -> None:
         ro = False
         try:
             ro = soundset_manager.is_ro(self.device_info.soundset_path)
@@ -257,7 +260,7 @@ class TCPConnectionManager:
                 self.device_info.soundset_path, parsed[3]
             )
             self.device_info.soundset = parsed[3]
-            self.device_info.store(device_info.GLOBAL_CONFIG_FILENAME)
+            self.device_info.store(GLOBAL_CONFIG_FILENAME)
 
             self._send(self.device_info.area + ';SH;CHANGE-SET;OK;')
         except Exception as e:

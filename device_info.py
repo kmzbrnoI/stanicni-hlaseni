@@ -19,7 +19,7 @@ class ConfigFileBadFormatError(Exception):
 
 class DeviceInfo:
 
-    def __init__(self):
+    def __init__(self) -> None:
         """Reads device info from configuration file."""
         if not os.path.isfile(GLOBAL_CONFIG_FILENAME):
             raise ConfigFileNotFoundError(
@@ -43,7 +43,7 @@ class DeviceInfo:
             raise ConfigFileBadFormatError('Bad format of config file:'
                                            '{0}!'.format(str(e)))
 
-    def store(self, filename: str):
+    def store(self, filename: str) -> None:
         config = ConfigParser()
 
         config.add_section('server')

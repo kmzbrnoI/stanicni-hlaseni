@@ -13,7 +13,7 @@ class FileNotFoundError(Exception):
     pass
 
 
-def play_report(report: Iterable[str]):
+def play_report(report: Iterable[str]) -> None:
     # Check existence of all files
     for f in report:
         if not os.path.isfile(f):
@@ -22,7 +22,7 @@ def play_report(report: Iterable[str]):
     _play_report(report)
 
 
-def _play_report(sound_sequence: Iterable[str]):
+def _play_report(sound_sequence: Iterable[str]) -> None:
     pygame.mixer.init()
 
     sounds = [pygame.mixer.Sound(f) for f in sound_sequence]

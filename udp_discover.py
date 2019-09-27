@@ -46,7 +46,7 @@ class ServerInfo:
         self.on = (self.status == 'on')
         self.description = splitted[7]
 
-    def __str__(self):
+    def __str__(self) -> str:
         return (self.name + ' ' + self.description + ' ' + self.ip + ' ' +
                 str(self.port))
 

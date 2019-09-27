@@ -10,21 +10,22 @@ AREA = 'Zd'
 PORT = 5896
 
 
-def get_example_message(x):
+def get_example_message(x: int) -> str:
     if x == 0:
         return input() + '\n'
 
-    return AREA + ({
+    COMMANDS = {
         1: ';SH;PRIJEDE;{501520;MOs;2;Br;Ku;9:22;9:26}',
         2: ';SH;ODJEDE;{504220;Os;2;Bs;Zd;13:15;12:01}',
         3: ';SH;SPEC;NESAHAT',
         4: ';SH;CHANGE-SET;{Veronika}',
         6: ';SH;SYNC',
         7: ';SH;SETS-LIST',
-    }.get(x)) + '\n'
+    }
+    return AREA + COMMANDS[x] + '\n' if x in COMMANDS else ''
 
 
-def tcp_listener():
+def tcp_listener() -> None:
     serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     serversocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
@@ -79,7 +80,7 @@ def tcp_listener():
     clientsocket.close()
 
 
-def udp_listener():
+def udp_listener() -> None:
     sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     sock.bind(('', 5880))
 
@@ -90,7 +91,7 @@ def udp_listener():
             return
 
 
-def udp_broadcast(data):
+def udp_broadcast(data: str) -> None:
     brd_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     brd_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
     brd_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -99,12 +100,12 @@ def udp_broadcast(data):
     brd_socket.sendto(data_to_send, ('<broadcast>', 5880))
 
 
-def get_ip():
+def get_ip() -> str:
     s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     s.connect(('8.8.8.8', 80))
     ip = s.getsockname()[0]
     s.close()
-    return ip
+    return str(ip)
 
 
 if __name__ == '__main__':
